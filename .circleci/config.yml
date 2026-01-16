@@ -10,8 +10,9 @@ jobs:
       - checkout
         # Install dev tools (pre-commit, build, etc.) mentioned in pyproject.toml
       - python/install-packages:
-            pkg-manager: pip
-            args: -e .[dev]
+          pkg-manager: pip-dist
+          pip-dependency-file: pyproject.toml
+          path-args: .[dev]
       - run:
           name: Run lint and Formatter (Pre-commit)
           command: pre-commit run --all-files
