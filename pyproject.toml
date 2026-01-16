@@ -1,0 +1,31 @@
+[build-system]
+requires = ["hatchling >= 1.26"]
+build-backend = "hatchling.build"
+
+[project]
+name = "oceanmaster"
+version = "0.0.1"
+authors = [
+  { name="Allen", email="108123012@nitt.edu" },
+]
+description = "Oceanmaster is a package which helps users write and submit code to participate in the Ocean Mining game."
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Development Status :: 1 - Planning",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Topic :: Games/Entertainment",
+    "Topic :: Games/Entertainment :: Simulation",
+]
+license = "MIT"
+license-files = ["LICEN[CS]E*"]
+
+[project.urls]
+Homepage = "https://github.com/delta/oceanmaster"
+Issues = "https://github.com/delta/oceanmaster/issues"
+
+[project.optional-dependencies]
+dev = ["pre-commit", "build", "twine"]

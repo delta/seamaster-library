@@ -1,0 +1,26 @@
+version: 2.1
+
+orbs:
+  python: circleci/python@3.3.0
+
+jobs:
+  lint-and-build:
+    executor: python/default
+    steps:
+      - checkout
+        # Install dev tools (pre-commit, build, etc.) mentioned in pyproject.toml
+      - python/install-packages:
+            pkg-manager: pip
+            args: -e .[dev]
+      - run:
+          name: Run lint and Formatter (Pre-commit)
+          command: pre-commit run --all-files
+
+      - run:
+          name: Verify Package Build
+          command: python -m build
+
+workflows:
+  lint-and-build:
+    jobs:
+      - lint-and-build
