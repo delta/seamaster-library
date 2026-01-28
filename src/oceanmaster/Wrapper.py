@@ -9,14 +9,32 @@ Handles:
 - Engine contract compliance
 """
 
-from .API import GameAPI
-from .BotContext import BotContext
-from .Translate import spawn
-from .controllers.BotBase import BotController
-from .User import spawn_policy
+from oceanmaster.api import GameAPI
+from oceanmaster.context.bot_context import BotContext
+from oceanmaster.Translate import spawn
+from oceanmaster.botbase import BotController
 
 
 BOT_STRATEGIES: dict[int, BotController] = {}
+_SPAWN_POLICY= None
+
+import importlib
+
+def load_spawn_policy():
+    try:
+        user = importlib.import_module("user")
+    except ModuleNotFoundError:
+        raise RuntimeError(
+            "Submission must define user.py"
+        )
+
+    if not hasattr(user, "spawn_policy"):
+        raise RuntimeError(
+            "user.py must define spawn_policy(api)"
+        )
+
+    return user.spawn_policy
+
 
 
 def play(api: GameAPI):
@@ -30,11 +48,16 @@ def play(api: GameAPI):
             "actions": { bot_id: action_payload }
         }
     """
+    global BOT_STRATEGIES
+    global _SPAWN_POLICY
+    if api.get_tick() == 0:
+        BOT_STRATEGIES = {}
+        _SPAWN_POLICY = load_spawn_policy()
 
     spawns: dict[str, dict] = {}
     actions: dict[str, dict] = {}
 
-    for spec in spawn_policy(api):
+    for spec in _SPAWN_POLICY(api):
         strategy_cls = spec["strategy"]
 
         if not issubclass(strategy_cls, BotController):

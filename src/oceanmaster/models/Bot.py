@@ -1,6 +1,6 @@
 from typing import List
 from oceanmaster.models.Point import Point
-from oceanmaster.Constants import Ability, BotType
+from oceanmaster.Constants import Ability
 
 class Bot:
     id: int

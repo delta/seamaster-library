@@ -1,7 +1,6 @@
-from oceanmaster.Constants import Direction, Ability, ABILITY_COSTS
-from oceanmaster.Translate import *
+from oceanmaster.Constants import Direction, Ability, ABILITY_COSTS 
 from oceanmaster.models.Point import Point
-from oceanmaster.Utils import *
+from oceanmaster.Utils import manhattan_distance, next_point, Ability
 
 class BotContext:
     """
@@ -300,15 +299,7 @@ class BotContext:
             bool: True if SHIELD ability exists.
         """
         return Ability.SHIELD.value in self.bot.abilities
-        """
-        Create a self-destruct action.
 
-        Returns:
-            Action: SELF_DESTRUCT action.
-        """
-        if Ability.SELF_DESTRUCT.value not in self.bot.abilities:
-            raise ValueError("Bot does not have SELF_DESTRUCT ability equipped.")
-        return self_destruct()
 
     def canSpawn(self, abilities: list[str]) -> bool:
         """

@@ -18,9 +18,6 @@ class GameAPI:
     # ---- SENSING ----
     def visible_enemies(self):
         return self.view.visible_entities.enemies
-
-    def visible_algae(self):
-        return self.view.visible_entities.algae
         
     def visible_scraps(self):
         return self.view.visible_entities.scraps
@@ -32,7 +29,7 @@ class GameAPI:
         return self.view.permanent_entities.energypads
     
     def visible_walls(self):
-        return self.view.visible_entities.walls
+        return self.view.permanent_entities.walls
     
     def visible_algae(self):
         return self.view.permanent_entities.algae

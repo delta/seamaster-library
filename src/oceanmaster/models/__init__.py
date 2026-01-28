@@ -2,7 +2,7 @@ import Bank
 import Bot
 import PlayerView
 import Point
-import PythonLib.models.Algae as Algae
+import Algae
 import VisibleScrap
 import VisibleEntities
 import PermanentEntities
