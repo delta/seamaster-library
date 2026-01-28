@@ -14,12 +14,12 @@ from oceanmaster.botbase import BotController
 # templates
 from oceanmaster.templates import Forager, FlashScout, HeatSeeker, Lurker, Saboteur
 
-# Constants
-from oceanmaster.Constants import Ability, Direction, ABILITY_COSTS
+# constants
+from oceanmaster.constants import Ability, Direction, ABILITY_COSTS
 
 
 # Actions
-from oceanmaster.Translate import move, moveSpeed, harvest, self_destruct, defend, spawn
+from oceanmaster.translate import move, moveSpeed, harvest, self_destruct, defend, spawn
 
 __all__ = [
     "GameAPI",
