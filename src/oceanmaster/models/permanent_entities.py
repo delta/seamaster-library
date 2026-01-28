@@ -1,5 +1,5 @@
 from oceanmaster.models.Bank import Bank
-from oceanmaster.models.EnergyPad import EnergyPad
+from oceanmaster.models.energy_pad import EnergyPad
 from typing import List
 from oceanmaster.models.Point import Point
 from oceanmaster.models.Algae import Algae

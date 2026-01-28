@@ -1,8 +1,16 @@
+"""
+Initialization of Bot model.
+"""
+
 from typing import List
-from oceanmaster.models.Point import Point
-from oceanmaster.Constants import Ability
+from oceanmaster.models.point import Point
+from oceanmaster.constants import Ability
+
 
 class Bot:
+    """
+    Represents a bot in the game.
+    """
     id: int
     owner_id: int
     location: Point

@@ -1,6 +1,6 @@
 from oceanmaster.models.Bot import Bot
-from oceanmaster.models.VisibleEntities import VisibleEntities
-from oceanmaster.models.PermanentEntities import PermanentEntities
+from oceanmaster.models.visible_entities import VisibleEntities
+from oceanmaster.models.permanent_entities import PermanentEntities
 from typing import List
     
 class PlayerView:

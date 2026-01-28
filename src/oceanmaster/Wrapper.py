@@ -1,6 +1,5 @@
 """
-ENGINE WRAPPER
-
+ENGINE wrapper module.
 Handles:
 - Bot ID allocation
 - Strategy persistence
@@ -9,24 +8,35 @@ Handles:
 - Engine contract compliance
 """
 
+import importlib
 from oceanmaster.api import GameAPI
 from oceanmaster.context.bot_context import BotContext
 from oceanmaster.Translate import spawn
 from oceanmaster.botbase import BotController
 
 
-BOT_STRATEGIES: dict[int, BotController] = {}
-_SPAWN_POLICY= None
+class _EngineState:
+    """
+    Internal mutable engine state.
+    """
+    def __init__(self):
+        self.bot_strategies: dict[int, BotController] = {}
+        self.spawn_policy = None
 
-import importlib
+
+_STATE = _EngineState()
+
 
 def load_spawn_policy():
+    """
+    Load the spawn policy from user.py.
+    """
     try:
         user = importlib.import_module("user")
-    except ModuleNotFoundError:
+    except ModuleNotFoundError as exc:
         raise RuntimeError(
             "Submission must define user.py"
-        )
+        ) from exc
 
     if not hasattr(user, "spawn_policy"):
         raise RuntimeError(
@@ -34,7 +44,6 @@ def load_spawn_policy():
         )
 
     return user.spawn_policy
-
 
 
 def play(api: GameAPI):
@@ -48,16 +57,14 @@ def play(api: GameAPI):
             "actions": { bot_id: action_payload }
         }
     """
-    global BOT_STRATEGIES
-    global _SPAWN_POLICY
     if api.get_tick() == 0:
-        BOT_STRATEGIES = {}
-        _SPAWN_POLICY = load_spawn_policy()
+        _STATE.bot_strategies.clear()
+        _STATE.spawn_policy = load_spawn_policy()
 
     spawns: dict[str, dict] = {}
     actions: dict[str, dict] = {}
 
-    for spec in _SPAWN_POLICY(api):
+    for spec in _STATE.spawn_policy(api):
         strategy_cls = spec["strategy"]
 
         if not issubclass(strategy_cls, BotController):
@@ -79,43 +86,31 @@ def play(api: GameAPI):
 
         spawns[str(bot_id)] = payload
 
-        # create strategy instance (ctx bound in execution phase)
-        BOT_STRATEGIES[bot_id] = strategy_cls(None)
+        _STATE.bot_strategies[bot_id] = strategy_cls(None)
 
-    # ========================================================
-    # EXECUTION PHASE
-    # ========================================================
+    # ==================== EXECUTION PHASE ====================
     alive_ids: set[int] = set()
 
     for bot in api.get_my_bots():
         alive_ids.add(bot.id)
 
-        if bot.id not in BOT_STRATEGIES:
-            # This should never happen unless the backend
-            # introduces bots without frontend consent
+        if bot.id not in _STATE.bot_strategies:
             raise RuntimeError(
                 f"No strategy registered for bot id {bot.id}"
             )
 
         ctx = BotContext(api, bot)
+        _STATE.bot_strategies[bot.id].ctx = ctx
 
-        # rebind context every tick
-        BOT_STRATEGIES[bot.id].ctx = ctx
-
-        action = BOT_STRATEGIES[bot.id].act()
+        action = _STATE.bot_strategies[bot.id].act()
         if action:
             actions[str(bot.id)] = action.to_dict()
 
-    # ========================================================
-    # CLEANUP PHASE
-    # ========================================================
-    for bot_id in list(BOT_STRATEGIES.keys()):
+    # ==================== CLEANUP PHASE ====================
+    for bot_id in list(_STATE.bot_strategies.keys()):
         if bot_id not in alive_ids:
-            del BOT_STRATEGIES[bot_id]
+            del _STATE.bot_strategies[bot_id]
 
-    # ========================================================
-    # FINAL RETURN
-    # ========================================================
     return {
         "spawn": spawns,
         "actions": actions,

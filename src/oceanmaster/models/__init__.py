@@ -1,22 +1,26 @@
-import Bank 
-import Bot
-import PlayerView
-import Point
-import Algae
-import VisibleScrap
-import VisibleEntities
-import PermanentEntities
+"""
+Initialization of models module.
+"""
+
+from .bank import Bank
+from .bot import Bot
+from .energy_pad import EnergyPad
+from .algae import Algae
+from .player_view import PlayerView
+from .point import Point
+from .visible_scrap import VisibleScrap
+from .visible_entities import VisibleEntities
+from .permanent_entities import PermanentEntities
 
 
 __all__ = [
+    "Algae",
+    "Bank",
     "Bot",
-    "EnemyBot",
+    "EnergyPad",
+    "PermanentEntities",
     "PlayerView",
     "Point",
-    "Algae",
-    "VisibleScrap",
     "VisibleEntities",
-    "PermanentEntities",
-    "Bank",
-    "EnergyPad",
+    "VisibleScrap",
 ]
