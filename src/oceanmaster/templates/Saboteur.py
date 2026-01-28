@@ -1,6 +1,6 @@
 from oceanmaster.botbase import BotController
-from oceanmaster.Translate import *
-from oceanmaster.Constants import Ability, Direction
+from oceanmaster.translate import move, self_destruct
+from oceanmaster.constants import Ability, Direction
 
 class Saboteur(BotController):
     """"

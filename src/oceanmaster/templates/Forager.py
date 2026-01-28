@@ -1,7 +1,7 @@
 from oceanmaster.botbase import BotController
-from oceanmaster.Translate import *
-from oceanmaster.Constants import Direction, Ability
-from oceanmaster.Utils import direction_from_point
+from oceanmaster.translate import harvest, move
+from oceanmaster.constants import Ability
+from oceanmaster.utils import direction_from_point
 
 class Forager(BotController):
     """
@@ -22,8 +22,8 @@ class Forager(BotController):
         visible = ctx.senseAlgae()+ctx.senseSacraps()
         if visible:
             dir=direction_from_point(ctx.getLocation(),visible[0].location)
-            return harvest(dir);
-        i=2;
+            return harvest(dir)
+        i=2
         while(i<=10):
             visible = ctx.senseAlgae(radius=i)+ctx.senseSacraps(radius=i)
             if visible:

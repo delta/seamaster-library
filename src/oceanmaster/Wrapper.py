@@ -11,7 +11,7 @@ Handles:
 import importlib
 from oceanmaster.api import GameAPI
 from oceanmaster.context.bot_context import BotContext
-from oceanmaster.Translate import spawn
+from oceanmaster.translate import spawn
 from oceanmaster.botbase import BotController
 
 

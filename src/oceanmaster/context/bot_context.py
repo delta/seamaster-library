@@ -4,8 +4,13 @@ to interact with the game engine state safely.
 """
 
 from oceanmaster.constants import Direction, Ability, ABILITY_COSTS
+from oceanmaster.models.algae import Algae
+from oceanmaster.models.bank import Bank
+from oceanmaster.models.bot import Bot
+from oceanmaster.models.energy_pad import EnergyPad
 from oceanmaster.models.point import Point
-from oceanmaster.Utils import manhattan_distance, next_point
+from oceanmaster.models.visible_scrap import VisibleScrap
+from oceanmaster.utils import manhattan_distance, next_point
 
 
 class BotContext:
@@ -192,6 +197,23 @@ class BotContext:
             if manhattan_distance(a.location, pos) <= radius
         ]
 
+    def sense_algae_in_radius(self, bot: Point, radius: int = 1):
+        """
+        Detect algae within a Manhattan radius of a point.
+
+        Args:
+            bot (Point): Center position.
+            radius (int): Manhattan distance radius.
+
+        Returns:
+            list[Algae]: Algae within radius.
+        """
+        return [
+            a
+            for a in self.api.visible_algae()
+            if manhattan_distance(a.location, bot) <= radius
+        ]
+
     def sense_scraps_in_radius(self, radius: int = 1):
         """
         Detect visible scrap resources within a radius of the bot.
@@ -248,6 +270,22 @@ class BotContext:
             if manhattan_distance(w, bot) <= radius
         ]
 
+    # ============= REACTING TO GAME STATE =============
+    
+    def get_depositing_banks_sorted(self):
+        """
+        Get depositing banks sorted by nearest distance from the bot.
+        
+        Returns:
+            list[Bank]: Depositing banks sorted by distance.
+        """
+        pos = self.bot.location
+        return sorted(
+            (b for b in self.api.banks() if b.deposit_occuring),
+            key=lambda b: manhattan_distance(b.location, pos),
+        )
+
+    
     # ==================== PATHING ====================
 
     def can_move(self, direction: Direction) -> bool:
@@ -289,7 +327,7 @@ class BotContext:
         bx, by = self.bot.location.x, self.bot.location.y
         return abs(bx - target.x) + abs(by - target.y)
 
-    def check_blocked(self, pos: Point) -> bool:
+    def check_blocked_point(self, pos: Point) -> bool:
         """
         Determine if a position is blocked by any obstacle.
 
@@ -303,7 +341,33 @@ class BotContext:
             self.sense_walls_in_radius(pos)
             or self.sense_enemies_in_radius(pos)
             or self.sense_own_bots_in_radius(pos)
+            or self.sense_scraps_in_radius(pos)
+            or self.sense_algae_in_radius(pos)
         )
+
+    def check_blocked_direction(self, direction: Direction) -> bool:
+        """
+        Determine if moving in a direction would result in a blocked position.
+
+        Args:
+            direction (Direction): Direction to check.
+
+        Returns:
+            bool: True if the position in that direction is blocked.
+        """
+        pos = self.bot.location
+        x, y = pos.x, pos.y
+
+        if direction == Direction.NORTH:
+            y += 1
+        elif direction == Direction.SOUTH:
+            y -= 1
+        elif direction == Direction.EAST:
+            x += 1
+        elif direction == Direction.WEST:
+            x -= 1
+
+        return self.check_blocked_point(Point(x, y))
 
     def can_defend(self) -> bool:
         """
@@ -335,171 +399,199 @@ class BotContext:
 
     # ==================== NEAREST OBJECT HELPERS ====================
 
-    def get_nearest_bank(self) -> Point:
-        """Return nearest bank location."""
+    def get_nearest_bank(self) -> Bank:
+        """        
+        Returns:
+            Bank: Nearest bank.
+        """
         pos = self.bot.location
         return min(
             self.api.banks(),
             key=lambda b: manhattan_distance(b.location, pos),
-        ).location
+        )
 
-    def get_nearest_energy_pad(self) -> Point:
-        """Return nearest energy pad location."""
+    def get_nearest_energy_pad(self) -> EnergyPad:
+        """
+        Return:
+            EnergyPad: Nearest energy pad.
+        """
         pos = self.bot.location
         return min(
             self.api.energypads(),
             key=lambda p: manhattan_distance(p.location, pos),
-        ).location
+        )
 
-    def get_nearest_scrap(self) -> Point:
-        """Return nearest scrap location."""
+    def get_nearest_scrap(self) -> VisibleScrap:
+        """
+        Return:
+            VisibleScrap: Nearest scrap.
+        """
         pos = self.bot.location
         return min(
             self.api.sense_bot_scraps(),
             key=lambda s: manhattan_distance(s.location, pos),
-        ).location
-
-    def get_nearest_algae(self) -> Point:
-        """Return nearest algae location."""
+        )
+    
+    def get_nearest_algae(self) -> Algae:
+        """
+        Return:
+            Algae: Nearest algae.
+        """
         pos = self.bot.location
         return min(
             self.api.visible_algae(),
             key=lambda a: manhattan_distance(a.location, pos),
-        ).location
+        )
 
-    def get_nearest_enemy(self) -> Point:
-        """Return nearest enemy location."""
+    def get_nearest_enemy(self) -> Bot:
+        """
+        Return:
+            Bot: Nearest enemy.
+        """
         pos = self.bot.location
         return min(
             self.api.visible_enemies(),
             key=lambda e: manhattan_distance(e.location, pos),
-        ).location
+        )
 
 
 # ==================== COLLISION AVOIDANCE ====================
 
-def move_target(self, bot: Point, target: Point):
-    """
-    Fast, edge-safe movement toward target.
-    O(1) time, no allocations.
-    """
-    x, y = bot.x, bot.y
-    at_left = x == 0
-    at_right = x == 19
-    at_bottom = y == 0
-    at_top = y == 19
+    def move_target(self, bot: Point, target: Point):
+        """
+        High-performance movement with collision and edge protection.
+        
+        Args:
+            bot (Point): Current bot position.
+            target (Point): Target position.
+            
+        Returns:
+            Direction | None: Preferred movement direction or None if blocked.
+        """
+        x, y = bot.x, bot.y
+        at_left = x == 0
+        at_right = x == 19
+        at_bottom = y == 0
+        at_top = y == 19
 
-    dx = target.x - x
-    dy = target.y - y
+        dx = target.x - x
+        dy = target.y - y
 
-    if abs(dx) >= abs(dy):
-        preferred = Direction.EAST if dx > 0 else Direction.WEST
-    else:
-        preferred = Direction.NORTH if dy > 0 else Direction.SOUTH
+        if abs(dx) >= abs(dy):
+            preferred = Direction.EAST if dx > 0 else Direction.WEST
+        else:
+            preferred = Direction.NORTH if dy > 0 else Direction.SOUTH
 
-    def try_dir(d: Direction):
-        np = next_point(bot, d)
-        return np is not None and not self.check_blocked(np)
+        def try_dir(d: Direction):
+            np = next_point(bot, d)
+            return np is not None and not self.check_blocked_point(np)
 
-    if (
-        (preferred == Direction.EAST and not at_right)
-        or (preferred == Direction.WEST and not at_left)
-        or (preferred == Direction.NORTH and not at_top)
-        or (preferred == Direction.SOUTH and not at_bottom)
-    ):
-        if try_dir(preferred):
-            return preferred
+        if (
+            (preferred == Direction.EAST and not at_right)
+            or (preferred == Direction.WEST and not at_left)
+            or (preferred == Direction.NORTH and not at_top)
+            or (preferred == Direction.SOUTH and not at_bottom)
+        ):
+            if try_dir(preferred):
+                return preferred
 
-    if at_left and try_dir(Direction.EAST):
-        return Direction.EAST
-    if at_right and try_dir(Direction.WEST):
-        return Direction.WEST
-    if at_bottom and try_dir(Direction.NORTH):
-        return Direction.NORTH
-    if at_top and try_dir(Direction.SOUTH):
-        return Direction.SOUTH
+        if at_left and try_dir(Direction.EAST):
+            return Direction.EAST
+        if at_right and try_dir(Direction.WEST):
+            return Direction.WEST
+        if at_bottom and try_dir(Direction.NORTH):
+            return Direction.NORTH
+        if at_top and try_dir(Direction.SOUTH):
+            return Direction.SOUTH
 
-    if not at_top and try_dir(Direction.NORTH):
-        return Direction.NORTH
-    if not at_right and try_dir(Direction.EAST):
-        return Direction.EAST
-    if not at_bottom and try_dir(Direction.SOUTH):
-        return Direction.SOUTH
-    if not at_left and try_dir(Direction.WEST):
-        return Direction.WEST
+        if not at_top and try_dir(Direction.NORTH):
+            return Direction.NORTH
+        if not at_right and try_dir(Direction.EAST):
+            return Direction.EAST
+        if not at_bottom and try_dir(Direction.SOUTH):
+            return Direction.SOUTH
+        if not at_left and try_dir(Direction.WEST):
+            return Direction.WEST
 
-    return None
+        return None
 
 
-def move_target_speed(self, bot: Point, target: Point):
-    """
-    High-performance SPEED movement with edge protection.
-    """
-    if Ability.SPEED.value not in self.bot.abilities:
-        raise ValueError(
-            "Bot does not have SPEED ability equipped."
-        )
+    def move_target_speed(self, bot: Point, target: Point):
+        """
+        High-performance SPEED movement with collision detection and edge protection.
+        
+        Args:
+            bot (Point): Current bot position.
+            target (Point): Target position.
+            
+        Returns:
+            tuple[Direction | None, int]: Preferred movement direction and step size (1 or 2), or (None, 0) if blocked.
+        """
+        if Ability.SPEED.value not in self.bot.abilities:
+            raise ValueError(
+                "Bot does not have SPEED ability equipped."
+            )
 
-    x, y = bot.x, bot.y
-    at_left = x == 0
-    at_right = x == 19
-    at_bottom = y == 0
-    at_top = y == 19
+        x, y = bot.x, bot.y
+        at_left = x == 0
+        at_right = x == 19
+        at_bottom = y == 0
+        at_top = y == 19
 
-    dx = target.x - x
-    dy = target.y - y
+        dx = target.x - x
+        dy = target.y - y
 
-    if abs(dx) >= abs(dy):
-        preferred = Direction.EAST if dx > 0 else Direction.WEST
-    else:
-        preferred = Direction.NORTH if dy > 0 else Direction.SOUTH
+        if abs(dx) >= abs(dy):
+            preferred = Direction.EAST if dx > 0 else Direction.WEST
+        else:
+            preferred = Direction.NORTH if dy > 0 else Direction.SOUTH
 
-    def speed_try(d: Direction):
-        p1 = next_point(bot, d)
-        if p1 is None or self.check_blocked(p1):
-            return None
+        def speed_try(d: Direction):
+            p1 = next_point(bot, d)
+            if p1 is None or self.check_blocked_point(p1):
+                return None
 
-        p2 = next_point(p1, d)
-        if p2 is not None and not self.check_blocked(p2):
-            return d, 2
+            p2 = next_point(p1, d)
+            if p2 is not None and not self.check_blocked_point(p2):
+                return d, 2
 
-        return d, 1
+            return d, 1
 
-    if (
-        (preferred == Direction.EAST and not at_right)
-        or (preferred == Direction.WEST and not at_left)
-        or (preferred == Direction.NORTH and not at_top)
-        or (preferred == Direction.SOUTH and not at_bottom)
-    ):
-        res = speed_try(preferred)
-        if res:
-            return res
+        if (
+            (preferred == Direction.EAST and not at_right)
+            or (preferred == Direction.WEST and not at_left)
+            or (preferred == Direction.NORTH and not at_top)
+            or (preferred == Direction.SOUTH and not at_bottom)
+        ):
+            res = speed_try(preferred)
+            if res:
+                return res
 
-    if at_left:
-        res = speed_try(Direction.EAST)
-        if res:
-            return res
-    if at_right:
-        res = speed_try(Direction.WEST)
-        if res:
-            return res
-    if at_bottom:
-        res = speed_try(Direction.NORTH)
-        if res:
-            return res
-    if at_top:
-        res = speed_try(Direction.SOUTH)
-        if res:
-            return res
+        if at_left:
+            res = speed_try(Direction.EAST)
+            if res:
+                return res
+        if at_right:
+            res = speed_try(Direction.WEST)
+            if res:
+                return res
+        if at_bottom:
+            res = speed_try(Direction.NORTH)
+            if res:
+                return res
+        if at_top:
+            res = speed_try(Direction.SOUTH)
+            if res:
+                return res
 
-    for d in (
-        Direction.NORTH,
-        Direction.EAST,
-        Direction.SOUTH,
-        Direction.WEST,
-    ):
-        res = speed_try(d)
-        if res:
-            return res
+        for d in (
+            Direction.NORTH,
+            Direction.EAST,
+            Direction.SOUTH,
+            Direction.WEST,
+        ):
+            res = speed_try(d)
+            if res:
+                return res
 
-    return None, 0
+        return None, 0

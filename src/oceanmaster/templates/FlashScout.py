@@ -1,6 +1,6 @@
 from oceanmaster.botbase import BotController
-from oceanmaster.Translate import *
-from oceanmaster.Constants import Direction, Ability
+from oceanmaster.translate import move, move_speed
+from oceanmaster.constants import Direction, Ability
 
 class FlashScout(BotController):
     """
@@ -19,7 +19,7 @@ class FlashScout(BotController):
         if visible:
             d, steps = ctx.moveTargetSpeed(bot_pos, visible[0].location)
             if d:
-                return moveSpeed(d,steps);
+                return move_speed(d,steps)
 
         radius = 2
         while radius <= 10:
@@ -27,7 +27,7 @@ class FlashScout(BotController):
             if visible:
                 d, steps = ctx.moveTargetSpeed(bot_pos, visible[0].location)
                 if d:
-                    return moveSpeed(d,steps);
+                    return move_speed(d,steps)
             radius += 1
 
         return move(Direction.NORTH)

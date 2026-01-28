@@ -1,4 +1,4 @@
-from oceanmaster.models.Point import Point
+from oceanmaster.models.point import Point
 
 class EnergyPad:
     id: int
