@@ -4,6 +4,7 @@ from typing import List
 from oceanmaster.models.Point import Point
 from oceanmaster.models.Algae import Algae
 
+
 class PermanentEntities:
     banks: List[Bank]
     energypads: List[EnergyPad]

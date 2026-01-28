@@ -19,6 +19,7 @@ class _EngineState:
     """
     Internal mutable engine state.
     """
+
     def __init__(self):
         self.bot_strategies: dict[int, BotController] = {}
         self.spawn_policy = None
@@ -34,14 +35,10 @@ def load_spawn_policy():
     try:
         user = importlib.import_module("user")
     except ModuleNotFoundError as exc:
-        raise RuntimeError(
-            "Submission must define user.py"
-        ) from exc
+        raise RuntimeError("Submission must define user.py") from exc
 
     if not hasattr(user, "spawn_policy"):
-        raise RuntimeError(
-            "user.py must define spawn_policy(api)"
-        )
+        raise RuntimeError("user.py must define spawn_policy(api)")
 
     return user.spawn_policy
 
@@ -68,21 +65,14 @@ def play(api: GameAPI):
         strategy_cls = spec["strategy"]
 
         if not issubclass(strategy_cls, BotController):
-            raise TypeError(
-                f"Invalid strategy class in spawn_policy: {strategy_cls}"
-            )
+            raise TypeError(f"Invalid strategy class in spawn_policy: {strategy_cls}")
 
         base_abilities = list(strategy_cls.DEFAULT_ABILITIES)
         extra_abilities = spec.get("extra_abilities", [])
 
-        final_abilities = list(dict.fromkeys(
-            base_abilities + extra_abilities
-        ))
+        final_abilities = list(dict.fromkeys(base_abilities + extra_abilities))
 
-        bot_id, payload = spawn(
-            abilities=final_abilities,
-            location=spec["location"]
-        )
+        bot_id, payload = spawn(abilities=final_abilities, location=spec["location"])
 
         spawns[str(bot_id)] = payload
 
@@ -95,9 +85,7 @@ def play(api: GameAPI):
         alive_ids.add(bot.id)
 
         if bot.id not in _STATE.bot_strategies:
-            raise RuntimeError(
-                f"No strategy registered for bot id {bot.id}"
-            )
+            raise RuntimeError(f"No strategy registered for bot id {bot.id}")
 
         ctx = BotContext(api, bot)
         _STATE.bot_strategies[bot.id].ctx = ctx

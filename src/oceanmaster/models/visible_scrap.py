@@ -1,5 +1,6 @@
 from oceanmaster.models.Point import Point
 
+
 class VisibleScrap:
-    location : Point
+    location: Point
     amount: int

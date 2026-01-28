@@ -2,7 +2,8 @@ from oceanmaster.models.Bot import Bot
 from oceanmaster.models.visible_entities import VisibleEntities
 from oceanmaster.models.permanent_entities import PermanentEntities
 from typing import List
-    
+
+
 class PlayerView:
     tick: int
     scraps: int

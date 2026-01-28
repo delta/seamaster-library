@@ -9,6 +9,7 @@ class GameAPI:
     """
     GameAPI provides methods to interact with the game state.
     """
+
     def __init__(self, view: PlayerView):
         self.view = view
 

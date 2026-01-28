@@ -1,6 +1,7 @@
 """
 constants used in the OceanMaster game.
 """
+
 from enum import Enum
 
 
@@ -8,6 +9,7 @@ class Ability(str, Enum):
     """
     Abilities that bots can have.
     """
+
     HARVEST = "HARVEST"
     SCOUT = "SCOUT"
     POISON = "POISON"
@@ -21,6 +23,7 @@ class ActionType(str, Enum):
     """
     Types of actions that bots can perform.
     """
+
     MOVE = "MOVE"
     HARVEST = "HARVEST"
     POISON = "POISON"
@@ -34,6 +37,7 @@ class Direction(str, Enum):
     """
     Possible movement directions.
     """
+
     NORTH = "NORTH"
     EAST = "EAST"
     SOUTH = "SOUTH"
@@ -44,6 +48,7 @@ class BotType(str, Enum):
     """
     Types of bots in the game.
     """
+
     FORAGER = "Forager"
     HOARDER = "Hoarder"
     MULE = "Mule"
@@ -57,6 +62,7 @@ class AlgaeType(str, Enum):
     """
     Types of algae in the game.
     """
+
     UNKNOWN = "UNKNOWN"
     TRUE = "TRUE"
 

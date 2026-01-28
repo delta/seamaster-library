@@ -11,6 +11,7 @@ class Bot:
     """
     Represents a bot in the game.
     """
+
     id: int
     owner_id: int
     location: Point

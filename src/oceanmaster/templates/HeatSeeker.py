@@ -2,16 +2,18 @@ from oceanmaster.botbase import BotController
 from oceanmaster.translate import move, self_destruct
 from oceanmaster.constants import Ability
 
+
 class HeatSeeker(BotController):
     """
     A bot that accepts a block as target and self-destructs at that location.
     """
-    DEFAULT_ABILITIES=[
-        Ability.SELF_DESTRUCT.value
-    ]
+
+    DEFAULT_ABILITIES = [Ability.SELF_DESTRUCT.value]
+
     def __init__(self, ctx, target):
         super().__init__(ctx)
         self.target = target
+
     def act(self):
         ctx = self.ctx
         bot_pos = ctx.getLocation()
@@ -22,5 +24,5 @@ class HeatSeeker(BotController):
         d = ctx.moveTarget(bot_pos, self.target)
         if d:
             return move(d)
-        
+
         return None

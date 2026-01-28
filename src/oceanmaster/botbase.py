@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+
 class BotController(ABC):
     """
     Base class for all bot strategies.

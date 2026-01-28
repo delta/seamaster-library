@@ -158,9 +158,7 @@ class BotContext:
         Returns:
             list[Bot]: Nearby friendly bots.
         """
-        return [
-            b for b in self.api.get_my_bots() if b.id != self.bot.id
-        ]
+        return [b for b in self.api.get_my_bots() if b.id != self.bot.id]
 
     def sense_own_bots_in_radius(self, bot: Point, radius: int = 1):
         """
@@ -176,8 +174,7 @@ class BotContext:
         return [
             b
             for b in self.api.get_my_bots()
-            if b.id != self.bot.id
-            and manhattan_distance(b.location, bot) <= radius
+            if b.id != self.bot.id and manhattan_distance(b.location, bot) <= radius
         ]
 
     def sense_algae(self, radius: int = 1):
@@ -265,17 +262,15 @@ class BotContext:
             list[Wall]: Walls within radius.
         """
         return [
-            w
-            for w in self.api.visible_walls()
-            if manhattan_distance(w, bot) <= radius
+            w for w in self.api.visible_walls() if manhattan_distance(w, bot) <= radius
         ]
 
     # ============= REACTING TO GAME STATE =============
-    
+
     def get_depositing_banks_sorted(self):
         """
         Get depositing banks sorted by nearest distance from the bot.
-        
+
         Returns:
             list[Bank]: Depositing banks sorted by distance.
         """
@@ -285,7 +280,6 @@ class BotContext:
             key=lambda b: manhattan_distance(b.location, pos),
         )
 
-    
     # ==================== PATHING ====================
 
     def can_move(self, direction: Direction) -> bool:
@@ -309,10 +303,7 @@ class BotContext:
         elif direction == Direction.WEST:
             x -= 1
 
-        return (
-            0 <= x < self.api.view.width
-            and 0 <= y < self.api.view.height
-        )
+        return 0 <= x < self.api.view.width and 0 <= y < self.api.view.height
 
     def shortest_path(self, target: Point) -> int:
         """
@@ -400,7 +391,7 @@ class BotContext:
     # ==================== NEAREST OBJECT HELPERS ====================
 
     def get_nearest_bank(self) -> Bank:
-        """        
+        """
         Returns:
             Bank: Nearest bank.
         """
@@ -431,7 +422,7 @@ class BotContext:
             self.api.sense_bot_scraps(),
             key=lambda s: manhattan_distance(s.location, pos),
         )
-    
+
     def get_nearest_algae(self) -> Algae:
         """
         Return:
@@ -454,17 +445,16 @@ class BotContext:
             key=lambda e: manhattan_distance(e.location, pos),
         )
 
-
-# ==================== COLLISION AVOIDANCE ====================
+    # ==================== COLLISION AVOIDANCE ====================
 
     def move_target(self, bot: Point, target: Point):
         """
         High-performance movement with collision and edge protection.
-        
+
         Args:
             bot (Point): Current bot position.
             target (Point): Target position.
-            
+
         Returns:
             Direction | None: Preferred movement direction or None if blocked.
         """
@@ -515,22 +505,19 @@ class BotContext:
 
         return None
 
-
     def move_target_speed(self, bot: Point, target: Point):
         """
         High-performance SPEED movement with collision detection and edge protection.
-        
+
         Args:
             bot (Point): Current bot position.
             target (Point): Target position.
-            
+
         Returns:
             tuple[Direction | None, int]: Preferred movement direction and step size (1 or 2), or (None, 0) if blocked.
         """
         if Ability.SPEED.value not in self.bot.abilities:
-            raise ValueError(
-                "Bot does not have SPEED ability equipped."
-            )
+            raise ValueError("Bot does not have SPEED ability equipped.")
 
         x, y = bot.x, bot.y
         at_left = x == 0
