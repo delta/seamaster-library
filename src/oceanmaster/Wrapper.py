@@ -42,43 +42,43 @@ def load_spawn_policy():
 
     return user.spawn_policy
 
-
 def play(api: GameAPI):
-    """
-    Called once per tick by the engine.
-
-    Returns:
-        dict:
-        {
-            "spawn": { bot_id: spawn_payload },
-            "actions": { bot_id: action_payload }
-        }
-    """
-    if api.get_tick() == 0:
+    # ---- ENSURE SPAWN POLICY IS LOADED ----
+    if _STATE.spawn_policy is None:
         _STATE.bot_strategies.clear()
         _STATE.spawn_policy = load_spawn_policy()
+        
+        
+    print("KNOWN STRATEGIES:", _STATE.bot_strategies.keys())
+    print("BOTS FROM API:", [b.id for b in api.get_my_bots()])
+
 
     spawns: dict[str, dict] = {}
     actions: dict[str, dict] = {}
 
-    for spec in _STATE.spawn_policy(api):
-        strategy_cls = spec["strategy"]
+    # ---- SPAWN PHASE ----
+    if api.get_tick() == 0:
+        for spec in _STATE.spawn_policy(api):
+            strategy_cls = spec["strategy"]
 
-        if not issubclass(strategy_cls, BotController):
-            raise TypeError(f"Invalid strategy class in spawn_policy: {strategy_cls}")
+            if not issubclass(strategy_cls, BotController):
+                raise TypeError(
+                    f"Invalid strategy class in spawn_policy: {strategy_cls}"
+                )
 
-        base_abilities = list(strategy_cls.DEFAULT_ABILITIES)
-        extra_abilities = spec.get("extra_abilities", [])
+            base_abilities = list(strategy_cls.DEFAULT_ABILITIES)
+            extra_abilities = spec.get("extra_abilities", [])
+            final_abilities = list(dict.fromkeys(base_abilities + extra_abilities))
 
-        final_abilities = list(dict.fromkeys(base_abilities + extra_abilities))
+            bot_id, payload = spawn(
+                abilities=final_abilities,
+                location=spec["location"],
+            )
 
-        bot_id, payload = spawn(abilities=final_abilities, location=spec["location"])
+            spawns[str(bot_id)] = payload
+            _STATE.bot_strategies[bot_id] = strategy_cls(None)
 
-        spawns[str(bot_id)] = payload
-
-        _STATE.bot_strategies[bot_id] = strategy_cls(None)
-
-    # ==================== EXECUTION PHASE ====================
+    # ---- ACTION PHASE ----
     alive_ids: set[int] = set()
 
     for bot in api.get_my_bots():
@@ -94,7 +94,7 @@ def play(api: GameAPI):
         if action:
             actions[str(bot.id)] = action.to_dict()
 
-    # ==================== CLEANUP PHASE ====================
+    # ---- CLEANUP PHASE ----
     for bot_id in list(_STATE.bot_strategies.keys()):
         if bot_id not in alive_ids:
             del _STATE.bot_strategies[bot_id]

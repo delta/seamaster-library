@@ -4,22 +4,57 @@ OceanMaster AI SDK
 High-level imports for common usage.
 """
 
-# Core interfaces
+#API
 from oceanmaster.api.game_api import GameAPI
+
+#Context
 from oceanmaster.context.bot_context import BotContext
 
 # Base classes
 from oceanmaster.botbase import BotController
 
 # templates
-from oceanmaster.templates import Forager, FlashScout, HeatSeeker, Lurker, Saboteur
+from oceanmaster.templates.forager import Forager
+from oceanmaster.templates.flash_scout import FlashScout
+from oceanmaster.templates.heat_seeker import HeatSeeker
+from oceanmaster.templates.lurker import Lurker
+from oceanmaster.templates.saboteur import Saboteur
+
+#models
+from oceanmaster.models.point import Point
+from oceanmaster.models.bot import Bot
+from oceanmaster.models.player_view import PlayerView
+from oceanmaster.models.visible_entities import VisibleEntities
+from oceanmaster.models.permanent_entities import PermanentEntities
+from oceanmaster.models.visible_scrap import VisibleScrap
+from oceanmaster.models.bank import Bank
+from oceanmaster.models.energy_pad import EnergyPad
+from oceanmaster.models.algae import Algae
+from oceanmaster.models.action import Action
 
 # constants
-from oceanmaster.constants import Ability, Direction, ABILITY_COSTS
+from oceanmaster.constants import (
+    Ability, 
+    Direction,
+    ABILITY_COSTS
+)
 
 
 # Actions
-from oceanmaster.translate import move, moveSpeed, harvest, self_destruct, defend, spawn
+# src/oceanmaster/__init__.py
+
+from oceanmaster.translate import (
+    move,
+    move_speed,
+    harvest,
+    self_destruct,
+    defend,
+    spawn,
+)
+
+#Utils
+from oceanmaster.utils import manhattan_distance, next_point, direction_from_point
+
 
 __all__ = [
     "GameAPI",
@@ -30,13 +65,26 @@ __all__ = [
     "HeatSeeker",
     "Lurker",
     "Saboteur",
+    "Point",
+    "Bot",
+    "PlayerView",
+    "VisibleEntities",
+    "PermanentEntities",
+    "VisibleScrap",
+    "Bank",
+    "EnergyPad",
+    "Algae",
+    "Action",
     "Ability",
     "Direction",
     "ABILITY_COSTS",
-    "spawn",
-    "moveSpeed",
     "move",
+    "move_speed",
     "harvest",
     "self_destruct",
     "defend",
+    "spawn",
+    "manhattan_distance",
+    "next_point",
+    "direction_from_point"
 ]
