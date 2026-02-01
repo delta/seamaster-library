@@ -3,15 +3,14 @@ Initialization of Action model.
 """
 
 from typing import Dict, Any
-from oceanmaster.constants import ActionType
-
+from oceanmaster.constants import Ability
 
 class Action:
     """
     Represents an action taken by a bot.
     """
 
-    def __init__(self, action_type: ActionType, payload: Dict[str, Any]):
+    def __init__(self, action_type: Ability, payload: Dict[str, Any]):
         self.action_type = action_type
         self.payload = payload
 

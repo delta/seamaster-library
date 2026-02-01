@@ -13,24 +13,13 @@ class Ability(str, Enum):
     HARVEST = "HARVEST"
     SCOUT = "SCOUT"
     POISON = "POISON"
-    SELF_DESTRUCT = "SELF_DESTRUCT"
-    SPEED = "SPEED"
+    SELF_DESTRUCT = "SELFDESTRUCT"
+    SPEED_BOOST = "SPEEDBOOST"
     SHIELD = "SHIELD"
     LOCKPICK = "LOCKPICK"
-
-
-class ActionType(str, Enum):
-    """
-    Types of actions that bots can perform.
-    """
-
     MOVE = "MOVE"
-    HARVEST = "HARVEST"
-    POISON = "POISON"
-    DEFEND = "DEFEND"
-    SELF_DESTRUCT = "SELF_DESTRUCT"
-    LOCKPICK = "LOCKPICK"
-    SPAWN = "SPAWN"
+    DEPOSIT = "DEPOSIT"
+    
 
 
 class Direction(str, Enum):
@@ -51,11 +40,9 @@ class BotType(str, Enum):
 
     FORAGER = "Forager"
     HOARDER = "Hoarder"
-    MULE = "Mule"
     LURKER = "Lurker"
     SABOTEUR = "Saboteur"
     HEATSEEKER = "HeatSeeker"
-    CUSTOMBOT = "CustomBot"
 
 
 class AlgaeType(str, Enum):
@@ -69,11 +56,24 @@ class AlgaeType(str, Enum):
 
 
 ABILITY_COSTS = {
-    "HARVEST": {"scrap": 10, "energy": 0},
-    "SCOUT": {"scrap": 10, "energy": 1.5},
-    "SELF_DESTRUCT": {"scrap": 5, "energy": 0.5},
-    "SPEED": {"scrap": 10, "energy": 1},
-    "SHIELD": {"scrap": 5, "energy": 0.25},
-    "POISON": {"scrap": 5, "energy": 0.5},
-    "LOCKPICK": {"scrap": 10, "energy": 1.5},
+    "HARVEST": {"traversal": 0, "action": 1},
+    "SCOUT": {"traversal": 1.5, "action": 0},
+    "SELF_DESTRUCT": {"traversal": 0.5, "action": 0},
+    "SPEED_BOOST": {"traversal": 1, "action": 0},
+    "SHIELD": {"traversal": 0.25, "action":0},
+    "POISON": {"traversal": 0.5, "action":2},
+    "LOCKPICK": {"traversal": 1.5, "action": 0},
+    "SHIELD": {"traversal": 0.25, "action": 0},
+    "DEPOSIT": {"traversal": 0, "action": 1},
+    "MOVE": {"traversal": 0, "action": 0},
+}
+
+SCRAP_COSTS = {
+    "HARVEST": 10,
+    "SCOUT": 10,
+    "SELF_DESTRUCT": 5,
+    "SPEED_BOOST": 10,
+    "SHIELD": 5,
+    "POISON": 5,
+    "LOCKPICK": 5
 }

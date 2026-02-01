@@ -5,7 +5,7 @@ from oceanmaster.utils import direction_from_point
 
 
 class Forager(BotController):
-    DEFAULT_ABILITIES = [Ability.HARVEST.value, Ability.SCOUT.value]
+    DEFAULT_ABILITIES = [Ability.HARVEST.value, Ability.SCOUT.value,Ability.DEPOSIT.value]
 
     def act(self):
         ctx = self.ctx

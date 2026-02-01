@@ -82,13 +82,15 @@ def play(api: GameAPI):
             extra_abilities = spec.get("extra_abilities", [])
             final_abilities = list(dict.fromkeys(base_abilities + extra_abilities))
 
-            bot_id, payload = spawn(
-                abilities=final_abilities,
-                location=spec["location"],
-            )
+            if(ctx.can_spawn(final_abilities) == False):
+                print("[ENGINE] Cannot spawn bot due to insufficient resources.", file=sys.stderr)
+                bot_id, payload = spawn(
+                    abilities=final_abilities,
+                    location=spec["location"],
+                )
 
-            spawns[str(bot_id)] = payload
-            target = spec.get("target")
+                spawns[str(bot_id)] = payload
+                target = spec.get("target")
 
             if target is not None:
                 _STATE.bot_strategies[int(bot_id)] = strategy_cls(None, target)

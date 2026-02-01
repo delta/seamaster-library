@@ -30,7 +30,7 @@ class BotController(ABC):
         """
         return {
             "strategy": cls,
-            "extra_abilities": abilities or [],
+            "extra_abilities": abilities or [],                
             "location": location,
             "target": target,
         }
