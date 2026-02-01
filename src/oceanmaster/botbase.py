@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-
+from oceanmaster.models.point import Point
 
 class BotController(ABC):
     """
@@ -16,13 +16,14 @@ class BotController(ABC):
         pass
 
     @classmethod
-    def spawn(cls, abilities: list[str] | None = None, location: int = 0):
+    def spawn(cls, abilities: list[str] | None = None, location: int = 0, target: Point = None) -> dict:
         """
         User-facing spawn helper.
 
         Args:
             abilities (list[str] | None): Extra abilities to stack.
             location (int): Spawn location index.
+            target (Point | None): Target point for certain strategies.
 
         Returns:
             dict: Spawn specification for wrapper.
@@ -31,4 +32,5 @@ class BotController(ABC):
             "strategy": cls,
             "extra_abilities": abilities or [],
             "location": location,
+            "target": target,
         }

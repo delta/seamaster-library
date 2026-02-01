@@ -1,8 +1,8 @@
+# oceanmaster/context/bot_context.py
 """
 BotContext module provides a read-only interface for bot strategies
 to interact with the game engine state safely.
 """
-
 from oceanmaster.constants import Direction, Ability, ABILITY_COSTS
 from oceanmaster.models.algae import Algae
 from oceanmaster.models.bank import Bank
@@ -332,8 +332,6 @@ class BotContext:
             self.sense_walls_in_radius(pos)
             or self.sense_enemies_in_radius(pos)
             or self.sense_own_bots_in_radius(pos)
-            or self.sense_scraps_in_radius(pos)
-            or self.sense_algae_in_radius(pos)
         )
 
     def check_blocked_direction(self, direction: Direction) -> bool:

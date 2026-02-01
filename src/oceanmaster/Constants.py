@@ -65,6 +65,7 @@ class AlgaeType(str, Enum):
 
     UNKNOWN = "UNKNOWN"
     TRUE = "TRUE"
+    FALSE = "FALSE"
 
 
 ABILITY_COSTS = {

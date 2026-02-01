@@ -16,12 +16,12 @@ class HeatSeeker(BotController):
 
     def act(self):
         ctx = self.ctx
-        bot_pos = ctx.getLocation()
+        bot_pos = ctx.get_location()
 
         if bot_pos.x == self.target.x and bot_pos.y == self.target.y:
             return self_destruct()
 
-        d = ctx.moveTarget(bot_pos, self.target)
+        d = ctx.move_target(bot_pos, self.target)
         if d:
             return move(d)
 

@@ -9,6 +9,7 @@ Handles:
 """
 
 import importlib
+import sys
 from oceanmaster.api import GameAPI
 from oceanmaster.context.bot_context import BotContext
 from oceanmaster.translate import spawn
@@ -42,21 +43,32 @@ def load_spawn_policy():
 
     return user.spawn_policy
 
+
 def play(api: GameAPI):
-    # ---- ENSURE SPAWN POLICY IS LOADED ----
+    """
+    Main entrypoint called by the Python process for every tick.
+
+    Engine invariants:
+    - spawn_policy is executed ONLY at tick 0
+    - Bot ID → Strategy mapping is created exactly once
+    - Strategies persist across ticks
+    - Cleanup must NOT run at tick 0
+    """
+    
+    print(
+        f"[ENGINE] tick={api.get_tick()} strategies={list(_STATE.bot_strategies.keys())}",
+        file=sys.stderr,
+    )
+
+    # ---- LOAD SPAWN POLICY ONCE PER PROCESS ----
     if _STATE.spawn_policy is None:
         _STATE.bot_strategies.clear()
         _STATE.spawn_policy = load_spawn_policy()
-        
-        
-    print("KNOWN STRATEGIES:", _STATE.bot_strategies.keys())
-    print("BOTS FROM API:", [b.id for b in api.get_my_bots()])
-
 
     spawns: dict[str, dict] = {}
     actions: dict[str, dict] = {}
 
-    # ---- SPAWN PHASE ----
+    # ---- SPAWN PHASE (ONLY AT TICK 0) ----
     if api.get_tick() == 0:
         for spec in _STATE.spawn_policy(api):
             strategy_cls = spec["strategy"]
@@ -76,7 +88,13 @@ def play(api: GameAPI):
             )
 
             spawns[str(bot_id)] = payload
-            _STATE.bot_strategies[bot_id] = strategy_cls(None)
+            target = spec.get("target")
+
+            if target is not None:
+                _STATE.bot_strategies[int(bot_id)] = strategy_cls(None, target)
+            else:
+                _STATE.bot_strategies[int(bot_id)] = strategy_cls(None)
+
 
     # ---- ACTION PHASE ----
     alive_ids: set[int] = set()
@@ -85,19 +103,34 @@ def play(api: GameAPI):
         alive_ids.add(bot.id)
 
         if bot.id not in _STATE.bot_strategies:
-            raise RuntimeError(f"No strategy registered for bot id {bot.id}")
+            raise RuntimeError(
+                f"No strategy registered for bot id {bot.id}. "
+                "Engine invariant violated: bot exists without strategy."
+            )
 
         ctx = BotContext(api, bot)
-        _STATE.bot_strategies[bot.id].ctx = ctx
+        strategy = _STATE.bot_strategies[bot.id]
+        strategy.ctx = ctx
 
-        action = _STATE.bot_strategies[bot.id].act()
-        if action:
+        try:
+            action = strategy.act()
+        except Exception as exc:
+            import traceback
+
+            print(
+                f"[ENGINE] Error in bot {bot.id}: {exc}\n{traceback.format_exc()}",
+                file=sys.stderr,
+            )
+            action = None
+
+        if action is not None:
             actions[str(bot.id)] = action.to_dict()
 
-    # ---- CLEANUP PHASE ----
-    for bot_id in list(_STATE.bot_strategies.keys()):
-        if bot_id not in alive_ids:
-            del _STATE.bot_strategies[bot_id]
+    # ---- CLEANUP PHASE (SKIP TICK 0) ----
+    if api.get_tick() > 0:
+        for bot_id in list(_STATE.bot_strategies.keys()):
+            if bot_id not in alive_ids:
+                del _STATE.bot_strategies[bot_id]
 
     return {
         "spawn": spawns,
