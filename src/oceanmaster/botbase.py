@@ -1,22 +1,24 @@
 from abc import ABC, abstractmethod
+from oceanmaster.constants import Ability
 from oceanmaster.models.point import Point
+from oceanmaster.models.action import Action
 
 class BotController(ABC):
     """
     Base class for all bot strategies.
     """
 
-    DEFAULT_ABILITIES: list[str] = []
+    ABILITIES: list[Ability] = []
 
     def __init__(self, ctx):
         self.ctx = ctx
 
     @abstractmethod
-    def act(self):
+    def act(self) ->Action | None:
         pass
 
     @classmethod
-    def spawn(cls, abilities: list[str] | None = None, location: int = 0, target: Point = None) -> dict:
+    def spawn(cls, location: int = 0) -> dict:
         """
         User-facing spawn helper.
 
@@ -30,7 +32,6 @@ class BotController(ABC):
         """
         return {
             "strategy": cls,
-            "extra_abilities": abilities or [],                
+            "extra_abilities": cls.ABILITIES or [],                
             "location": location,
-            "target": target,
         }

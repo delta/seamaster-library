@@ -8,7 +8,7 @@ from .energy_pad import EnergyPad
 from .algae import Algae
 from .player_view import PlayerView
 from .point import Point
-from .visible_scrap import VisibleScrap
+from .scrap import Scrap
 from .visible_entities import VisibleEntities
 from .permanent_entities import PermanentEntities
 
@@ -22,5 +22,5 @@ __all__ = [
     "PlayerView",
     "Point",
     "VisibleEntities",
-    "VisibleScrap",
+    "Scrap",
 ]

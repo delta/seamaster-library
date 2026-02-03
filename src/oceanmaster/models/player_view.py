@@ -12,7 +12,7 @@ class PlayerView:
     max_bots: int
     width: int
     height: int
-    bots: List[Bot]
+    bots: dict[int, Bot]
     visible_entities: VisibleEntities
     permanent_entities: PermanentEntities
     
@@ -20,14 +20,24 @@ class PlayerView:
     def from_dict(cls, data: dict):
         view = cls()
         view.tick = data["tick"]
-        view.scraps = data["scraps"]
-        view.algae = data["algae"]
+        view.scraps = data["scraps"][0]
+        view.algae = data["algae_count"][0]
         view.bot_count = data["bot_count"]
         view.max_bots = data["max_bots"]
         view.width = data["width"]
         view.height = data["height"]
 
-        # decode bots, visible_entities, permanent_entities
-        # (use exactly the constructors you already wrote)
+        view.bots = {
+            int(k): Bot.from_dict(v)
+            for k, v in data["bots"].items()
+        }
+
+        view.visible_entities = VisibleEntities.from_dict(
+            data["visible_entities"]
+        )
+
+        view.permanent_entities = PermanentEntities.from_dict(
+            data["permanent_entities"]
+        )
 
         return view

@@ -6,7 +6,14 @@ from oceanmaster.models.algae import Algae
 
 
 class PermanentEntities:
-    banks: List[Bank]
-    energypads: List[EnergyPad]
+    banks: dict[int, Bank]
+    energypads: dict[int, EnergyPad]
     walls: List[Point]
-    algae: List[Algae]
+    
+    @classmethod
+    def from_dict(cls, data: dict):
+        pe = cls()
+        pe.banks = {int(k): Bank.from_dict(v) for k, v in data["banks"].items()}
+        pe.energypads = {int(k): EnergyPad.from_dict(v) for k, v in data["energy_pads"].items()}
+        pe.walls = [Point(**wall) for wall in data["walls"]]
+        return pe

@@ -1,6 +1,7 @@
 from oceanmaster.botbase import BotController
 from oceanmaster.translate import move, lockpick
 from oceanmaster.constants import Direction, Ability
+from oceanmaster.api import GameAPI
 
 
 class Lurker(BotController):
@@ -8,7 +9,7 @@ class Lurker(BotController):
     A Lurker bot targets depositing banks and lockpicks them.
     """
 
-    DEFAULT_ABILITIES = [Ability.LOCKPICK.value]
+    ABILITIES = [Ability.LOCKPICK]
 
     def __init__(self, ctx):
         super().__init__(ctx)
@@ -52,6 +53,9 @@ class Lurker(BotController):
         # ==================== MOVE TOWARDS BANK ====================
         direction = ctx.move_target(bot_pos, self.target_bank)
         if direction:
-            return move(direction)
-
+            return move(direction) 
         return None
+    
+    @classmethod
+    def can_spawn(cls, api: GameAPI) -> bool:
+        return api.can_spawn(cls.ABILITIES)

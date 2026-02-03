@@ -1,10 +1,31 @@
 from oceanmaster.models.point import Point
 
-
 class Bank:
+    """
+    Represents a bank in the game.
+    """
     id: int
     location: Point
     deposit_occuring: bool
     deposit_amount: int
     deposit_owner: int
-    depositticksleft: int
+    bank_owner: int
+    deposit_ticks_left: int
+    lockpick_occuring: bool
+    lockpick_ticks_left: int
+    lockpick_botid: int
+
+    @classmethod
+    def from_dict(cls, data: dict):
+        b = cls()
+        b.id = data["id"]
+        b.location = Point(x=data["location"]["x"], y=data["location"]["y"])
+        b.deposit_occuring = data["deposit_occuring"]
+        b.deposit_amount = data["deposit_amount"]
+        b.deposit_owner = data["deposit_owner"]
+        b.bank_owner = data["bank_owner"]
+        b.deposit_ticks_left = data["deposit_ticks_left"]
+        b.lockpick_occuring = data["lockpick_occuring"]
+        b.lockpick_ticks_left = data["lockpick_ticks_left"]
+        b.lockpick_botid = data["lockpick_botid"]
+        return b

@@ -3,13 +3,14 @@
 BotContext module provides a read-only interface for bot strategies
 to interact with the game engine state safely.
 """
-from oceanmaster.constants import Direction, Ability, ABILITY_COSTS
+from operator import le
+from oceanmaster.constants import Direction, Ability, ABILITY_COSTS, SCRAP_COSTS
 from oceanmaster.models.algae import Algae
 from oceanmaster.models.bank import Bank
 from oceanmaster.models.bot import Bot
 from oceanmaster.models.energy_pad import EnergyPad
 from oceanmaster.models.point import Point
-from oceanmaster.models.visible_scrap import VisibleScrap
+from oceanmaster.models.scrap import Scrap
 from oceanmaster.utils import manhattan_distance, next_point
 
 
@@ -94,7 +95,7 @@ class BotContext:
         """
         return self.bot.abilities
 
-    def cost(self, abilities: list[str]) -> dict:
+    def spawn_cost(self, abilities: list[str]) -> int:
         """
         Calculate the resource cost of spawning or upgrading abilities.
 
@@ -109,19 +110,13 @@ class BotContext:
                 - 'energy' (float)
         """
         total_scrap = 0
-        total_energy = 0.0
 
         for ability in abilities:
-            if ability not in ABILITY_COSTS:
+            if ability not in SCRAP_COSTS:
                 continue
-            total_scrap += ABILITY_COSTS[ability]["scrap"]
-            total_energy += ABILITY_COSTS[ability]["energy"]
+            total_scrap += SCRAP_COSTS[ability]
 
-        # HeatSeeker synergy discount
-        if "SPEED" in abilities and "SELF_DESTRUCT" in abilities:
-            total_scrap -= 5
-
-        return {"scrap": total_scrap, "energy": total_energy}
+        return total_scrap
 
     # ==================== SENSING ====================
 
@@ -329,10 +324,10 @@ class BotContext:
             bool: True if blocked.
         """
         return (
-            self.sense_walls_in_radius(pos)
-            or self.sense_enemies_in_radius(pos)
-            or self.sense_own_bots_in_radius(pos)
+            len(self.sense_walls_in_radius(pos)) > 0
+            or len(self.sense_enemies_in_radius(pos)) > 0
         )
+
 
     def check_blocked_direction(self, direction: Direction) -> bool:
         """
@@ -380,10 +375,9 @@ class BotContext:
         if self.api.view.bot_count >= self.api.view.max_bots:
             return False
 
-        cost = self.cost(abilities)
+        cost = self.spawn_cost(abilities)
         return (
-            self.api.get_scraps() >= cost["scrap"]
-            and self.api.get_energy() >= cost["energy"]
+            self.api.get_scraps() >= cost
         )
 
     # ==================== NEAREST OBJECT HELPERS ====================
@@ -410,10 +404,10 @@ class BotContext:
             key=lambda p: manhattan_distance(p.location, pos),
         )
 
-    def get_nearest_scrap(self) -> VisibleScrap:
+    def get_nearest_scrap(self) -> Scrap:
         """
         Return:
-            VisibleScrap: Nearest scrap.
+            Scrap: Nearest scrap.
         """
         pos = self.bot.location
         return min(
@@ -514,7 +508,7 @@ class BotContext:
         Returns:
             tuple[Direction | None, int]: Preferred movement direction and step size (1 or 2), or (None, 0) if blocked.
         """
-        if Ability.SPEED.value not in self.bot.abilities:
+        if Ability.SPEED_BOOST.value not in self.bot.abilities:
             raise ValueError("Bot does not have SPEED ability equipped.")
 
         x, y = bot.x, bot.y

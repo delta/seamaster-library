@@ -1,10 +1,11 @@
 from oceanmaster.botbase import BotController
 from oceanmaster.translate import move, self_destruct
 from oceanmaster.constants import Ability, Direction
+from oceanmaster.api import GameAPI
 
 
 class Saboteur(BotController):
-    DEFAULT_ABILITIES = [Ability.SELF_DESTRUCT.value]
+    ABILITIES = [Ability.SELF_DESTRUCT]
 
     def __init__(self, ctx):
         super().__init__(ctx)
@@ -32,3 +33,7 @@ class Saboteur(BotController):
             self.target = None
 
         return move(Direction.NORTH)
+
+    @classmethod
+    def can_spawn(cls, api: GameAPI) -> bool:
+        return api.can_spawn(cls.ABILITIES)

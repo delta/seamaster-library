@@ -42,7 +42,7 @@ class BotType(str, Enum):
     HOARDER = "Hoarder"
     LURKER = "Lurker"
     SABOTEUR = "Saboteur"
-    HEATSEEKER = "HeatSeeker"
+    CUSTOM = "Custom"
 
 
 class AlgaeType(str, Enum):

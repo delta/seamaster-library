@@ -38,13 +38,6 @@ def self_destruct():
     return Action(Ability.SELF_DESTRUCT, {"direction": "NULL"})
 
 
-def defend():
-    """
-    Creates a defend action.
-    """
-    return Action(Ability.DEFEND, {"direction": "NULL"})
-
-
 def spawn(Ability: list[str], location: int):
     """
     Creates a spawn action with specified Ability at a given location.
@@ -58,3 +51,9 @@ def lockpick(location: Point):
     Creates a lockpick action.
     """
     return Action(Ability.LOCKPICK, {"location": location})
+
+def poison(direction: Direction):
+    """
+    Creates a poison action in the specified direction.
+    """
+    return Action(Ability.POISON, {"direction": direction.value})

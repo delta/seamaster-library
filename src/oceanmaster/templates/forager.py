@@ -1,15 +1,24 @@
 from oceanmaster.botbase import BotController
+from oceanmaster.api import GameAPI
 from oceanmaster.translate import harvest, move
 from oceanmaster.constants import Ability
 from oceanmaster.utils import direction_from_point
 
 
 class Forager(BotController):
-    DEFAULT_ABILITIES = [Ability.HARVEST.value, Ability.SCOUT.value,Ability.DEPOSIT.value]
+    ABILITIES = [Ability.HARVEST, Ability.SCOUT,Ability.DEPOSIT]
 
     def act(self):
         ctx = self.ctx
         loc = ctx.get_location()
+        
+        if(ctx.get_energy() < 10):
+            energy_pad = ctx.get_nearest_energy_pad()
+            d = ctx.move_target(loc, energy_pad.location)
+            if d:
+                return move(d)
+            else:
+                return None
 
         if ctx.get_algae_held() >= 5:
             bank = ctx.get_nearest_bank()
@@ -33,3 +42,7 @@ class Forager(BotController):
                     return move(d)
 
         return None
+
+    @classmethod
+    def can_spawn(cls, api: GameAPI) -> bool:
+        return api.can_spawn(cls.ABILITIES)

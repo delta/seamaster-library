@@ -15,7 +15,19 @@ class Bot:
     id: int
     owner_id: int
     location: Point
-    energy: int
+    energy: float
     scraps: int
     abilities: List[Ability]
     algae_held: int
+    
+    @classmethod
+    def from_dict(cls, data: dict) :
+        b = cls()
+        b.id = data['id']
+        b.owner_id = data['owner_id']
+        b.location = Point(**data['location'])
+        b.energy = data['energy']
+        b.scraps = data['scraps']
+        b.abilities = data['abilities']
+        b.algae_held = data['algae_held']
+        return b

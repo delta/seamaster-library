@@ -16,7 +16,6 @@ from oceanmaster.botbase import BotController
 # templates
 from oceanmaster.templates.forager import Forager
 from oceanmaster.templates.flash_scout import FlashScout
-from oceanmaster.templates.heat_seeker import HeatSeeker
 from oceanmaster.templates.lurker import Lurker
 from oceanmaster.templates.saboteur import Saboteur
 
@@ -26,7 +25,7 @@ from oceanmaster.models.bot import Bot
 from oceanmaster.models.player_view import PlayerView
 from oceanmaster.models.visible_entities import VisibleEntities
 from oceanmaster.models.permanent_entities import PermanentEntities
-from oceanmaster.models.visible_scrap import VisibleScrap
+from oceanmaster.models.scrap import Scrap
 from oceanmaster.models.bank import Bank
 from oceanmaster.models.energy_pad import EnergyPad
 from oceanmaster.models.algae import Algae
@@ -48,8 +47,9 @@ from oceanmaster.translate import (
     move_speed,
     harvest,
     self_destruct,
-    defend,
     spawn,
+    lockpick,
+    poison
 )
 
 #Utils
@@ -62,7 +62,6 @@ __all__ = [
     "BotController",
     "Forager",
     "FlashScout",
-    "HeatSeeker",
     "Lurker",
     "Saboteur",
     "Point",
@@ -70,7 +69,7 @@ __all__ = [
     "PlayerView",
     "VisibleEntities",
     "PermanentEntities",
-    "VisibleScrap",
+    "Scrap",
     "Bank",
     "EnergyPad",
     "Algae",
@@ -82,7 +81,8 @@ __all__ = [
     "move_speed",
     "harvest",
     "self_destruct",
-    "defend",
+    "lockpick",
+    "poison",
     "spawn",
     "manhattan_distance",
     "next_point",

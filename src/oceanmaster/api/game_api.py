@@ -2,7 +2,14 @@
 GameAPI module provides an interface to interact with the game state.
 """
 
+from oceanmaster.constants import Ability, SCRAP_COSTS
+from oceanmaster.models.algae import Algae
+from oceanmaster.models.bank import Bank
+from oceanmaster.models.energy_pad import EnergyPad
 from oceanmaster.models.player_view import PlayerView
+from oceanmaster.models.bot import Bot
+from oceanmaster.models.point import Point
+from oceanmaster.models.scrap import Scrap
 
 
 class GameAPI:
@@ -14,29 +21,29 @@ class GameAPI:
         self.view = view
 
     # ---- GLOBAL ----
-    def get_tick(self):
+    def get_tick(self) ->int:
         """
         Returns the current tick of the game.
         returnType: int
         """
         return self.view.tick
 
-    def get_scraps(self):
+    def get_scraps(self)->int:
         """
         Returns the total scraps available in the game.
         returnType: int
         """
         return self.view.scraps
 
-    def get_my_bots(self):
+    def get_my_bots(self) ->list[Bot]:
         """
         Returns a list of bots owned by the player.
         returnType: list[Bot]
         """
-        return self.view.bots
+        return list(self.view.bots.values())
 
     # ---- SENSING ----
-    def visible_enemies(self):
+    def visible_enemies(self)->list[Bot]:
         """
         Returns a list of visible enemy bots.
         returnType: list[Bot]
@@ -46,34 +53,47 @@ class GameAPI:
     def visible_scraps(self):
         """
         Returns a list of visible scrap entities.
-        returnType: list[VisibleScrap]
+        returnType: list[Scrap]
         """
         return self.view.visible_entities.scraps
 
-    def banks(self):
+    def banks(self) ->list[Bank]:
         """
         Returns a list of visible banks.
         returnType: list[Bank]
         """
-        return self.view.permanent_entities.banks
+        return list(self.view.permanent_entities.banks.values())
 
-    def energypads(self):
+    def energypads(self) -> list[EnergyPad]:
         """
         Returns a list of visible energy pads.
         returnType: list[EnergyPad]
         """
-        return self.view.permanent_entities.energypads
+        return list(self.view.permanent_entities.energypads.values())
 
-    def visible_walls(self):
+    def visible_walls(self) -> list[Point]:
         """
         Returns a list of visible walls.
         returnType: list[Point]
         """
         return self.view.permanent_entities.walls
 
-    def visible_algae(self):
+    def visible_algae(self) -> list[Algae]:
         """
         Returns a list of visible algae.
         returnType: list[Algae]
         """
-        return self.view.permanent_entities.algae
+        return self.view.visible_entities.algae
+    
+    def can_spawn(self, abilities: list[Ability]) -> bool:
+        """
+        Returns whether a bot can be spawned
+        returnType: bool
+        """
+        cost=0
+        for ability in abilities:
+            if ability not in SCRAP_COSTS:
+                continue
+            cost+=SCRAP_COSTS[ability.value]
+        
+        return cost<=self.view.scraps
