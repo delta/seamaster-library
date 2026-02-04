@@ -13,7 +13,6 @@ class Bot:
     """
 
     id: int
-    # owner_id: int WHY is this even necessary?
     location: Point
     energy: float
     scraps: int
@@ -27,7 +26,6 @@ class Bot:
     def from_dict(cls, data: dict) :
         b = cls()
         b.id = data['id']
-        # b.owner_id = data['owner_id']
         b.location = Point(**data['location'])
         b.energy = data['energy']
         b.scraps = data['scraps']

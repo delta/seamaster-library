@@ -8,8 +8,8 @@ class Bank:
     location: Point
     deposit_occuring: bool
     deposit_amount: int
-    deposit_owner: int
-    bank_owner: int
+    is_deposit_owner: bool
+    is_bank_owner: bool
     deposit_ticks_left: int
     lockpick_occuring: bool
     lockpick_ticks_left: int
@@ -22,8 +22,8 @@ class Bank:
         b.location = Point(**data["location"])
         b.deposit_occuring = data["deposit_occuring"]
         b.deposit_amount = data["deposit_amount"]
-        b.deposit_owner = data["deposit_owner"]
-        b.bank_owner = data["bank_owner"]
+        b.is_deposit_owner = data["is_deposit_owner"]
+        b.is_bank_owner = data["is_bank_owner"]
         b.deposit_ticks_left = data["deposit_ticks_left"]
         b.lockpick_occuring = data["lockpick_occuring"]
         b.lockpick_ticks_left = data["lockpick_ticks_left"]
