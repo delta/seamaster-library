@@ -8,7 +8,7 @@ class BotController(ABC):
     Base class for all bot strategies.
     """
 
-    ABILITIES: list[Ability] = []
+    ABILITIES: list[Ability]
 
     def __init__(self, ctx):
         self.ctx = ctx
@@ -32,6 +32,6 @@ class BotController(ABC):
         """
         return {
             "strategy": cls,
-            "extra_abilities": cls.ABILITIES or [],                
+            "abilities": cls.ABILITIES or [],
             "location": location,
         }

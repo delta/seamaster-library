@@ -28,7 +28,7 @@ class BotContext:
     A BotContext instance is created once per bot per tick.
     """
 
-    def __init__(self, api, bot):
+    def __init__(self, api, bot): # TODO: Fix all the errors after adding type
         """
         Initialize the context for a single bot.
 
@@ -372,7 +372,7 @@ class BotContext:
         Returns:
             bool: True if spawn is allowed.
         """
-        if self.api.view.bot_count >= self.api.view.max_bots:
+        if len(self.api.view.bots) >= self.api.view.max_bots:
             return False
 
         cost = self.spawn_cost(abilities)
