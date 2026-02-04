@@ -125,7 +125,7 @@ class BotContext:
         Get all visible enemy bots.
 
         Returns:
-            list[Bot]: Visible enemy bots.
+            list[EnemyBot]: Visible enemy bots.
         """
         return self.api.visible_enemies()
 
@@ -138,7 +138,7 @@ class BotContext:
             radius (int): Manhattan distance radius.
 
         Returns:
-            list[Bot]: Enemies within radius.
+            list[EnemyBot]: Enemies within radius.
         """
         return [
             b

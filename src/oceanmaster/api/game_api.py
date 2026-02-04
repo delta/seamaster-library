@@ -5,6 +5,7 @@ GameAPI module provides an interface to interact with the game state.
 from oceanmaster.constants import Ability, SCRAP_COSTS
 from oceanmaster.models.algae import Algae
 from oceanmaster.models.bank import Bank
+from oceanmaster.models.enemy_bot import EnemyBot
 from oceanmaster.models.energy_pad import EnergyPad
 from oceanmaster.models.player_view import PlayerView
 from oceanmaster.models.bot import Bot
@@ -43,10 +44,10 @@ class GameAPI:
         return list(self.view.bots.values())
 
     # ---- SENSING ----
-    def visible_enemies(self)->list[Bot]:
+    def visible_enemies(self)->list[EnemyBot]:
         """
         Returns a list of visible enemy bots.
-        returnType: list[Bot]
+        returnType: list[EnemyBot]
         """
         return self.view.visible_entities.enemies
 
@@ -84,7 +85,7 @@ class GameAPI:
         returnType: list[Algae]
         """
         return self.view.visible_entities.algae
-    
+
     def can_spawn(self, abilities: list[Ability]) -> bool:
         """
         Returns whether a bot can be spawned
@@ -95,5 +96,5 @@ class GameAPI:
             if ability not in SCRAP_COSTS:
                 continue
             cost+=SCRAP_COSTS[ability.value]
-        
+
         return cost<=self.view.scraps

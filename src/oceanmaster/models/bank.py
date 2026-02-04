@@ -19,7 +19,7 @@ class Bank:
     def from_dict(cls, data: dict):
         b = cls()
         b.id = data["id"]
-        b.location = Point(x=data["location"]["x"], y=data["location"]["y"])
+        b.location = Point(**data["location"])
         b.deposit_occuring = data["deposit_occuring"]
         b.deposit_amount = data["deposit_amount"]
         b.deposit_owner = data["deposit_owner"]

@@ -15,13 +15,13 @@ class PlayerView:
     bots: dict[int, Bot]
     visible_entities: VisibleEntities
     permanent_entities: PermanentEntities
-    
+
     @classmethod
     def from_dict(cls, data: dict):
         view = cls()
         view.tick = data["tick"]
-        view.scraps = data["scraps"][0]
-        view.algae = data["algae_count"][0]
+        view.scraps = data["scraps"]
+        view.algae = data["algae"]
         view.bot_count = data["bot_count"]
         view.max_bots = data["max_bots"]
         view.width = data["width"]
