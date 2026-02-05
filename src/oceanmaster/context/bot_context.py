@@ -393,6 +393,13 @@ class BotContext:
             key=lambda b: manhattan_distance(b.location, pos),
         )
 
+    def get_energy_pads(self)->list[EnergyPad]:
+        """
+        :return: List of energypafs
+        :rtype: list[EnergyPad]
+        """
+        return self.api.energypads()
+
     def get_nearest_energy_pad(self) -> EnergyPad:
         """
         Return:

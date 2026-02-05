@@ -5,6 +5,10 @@ from oceanmaster.api import GameAPI
 
 
 class Saboteur(BotController):
+    """
+    looks for enemies and self destructs
+    """
+    
     ABILITIES = [Ability.SELF_DESTRUCT]
 
     def __init__(self, ctx):

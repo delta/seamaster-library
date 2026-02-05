@@ -10,15 +10,16 @@ class BotController(ABC):
 
     ABILITIES: list[Ability]
 
-    def __init__(self, ctx):
+    def __init__(self, ctx, args:dict|None = None):
         self.ctx = ctx
+        self.args = args or {}
 
     @abstractmethod
     def act(self) ->Action | None:
         pass
 
     @classmethod
-    def spawn(cls, location: int = 0, target:Point|None = None) -> dict:
+    def spawn(cls, location: int = 0, args:dict|None = None) -> dict:
         """
         User-facing spawn helper.
 
@@ -34,5 +35,5 @@ class BotController(ABC):
             "strategy": cls,
             "abilities": cls.ABILITIES or [],
             "location": location,
-            "target" : target
+            "args" : args
         }
