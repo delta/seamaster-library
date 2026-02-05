@@ -18,7 +18,7 @@ class BotController(ABC):
         pass
 
     @classmethod
-    def spawn(cls, location: int = 0) -> dict:
+    def spawn(cls, location: int = 0, target:Point|None = None) -> dict:
         """
         User-facing spawn helper.
 
@@ -34,4 +34,5 @@ class BotController(ABC):
             "strategy": cls,
             "abilities": cls.ABILITIES or [],
             "location": location,
+            "target" : target
         }

@@ -10,7 +10,7 @@ tests/
 fakeGoBackend.py
 
 tick*.json
-
+scripts/
 # Distribution / packaging
 .Python
 build/

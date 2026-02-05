@@ -4,7 +4,7 @@ BotContext module provides a read-only interface for bot strategies
 to interact with the game engine state safely.
 """
 from operator import le
-from oceanmaster.constants import Direction, Ability, ABILITY_COSTS, SCRAP_COSTS
+from oceanmaster.constants import Direction, Ability, SCRAP_COSTS
 from oceanmaster.models.algae import Algae
 from oceanmaster.models.bank import Bank
 from oceanmaster.models.bot import Bot
@@ -12,7 +12,7 @@ from oceanmaster.models.energy_pad import EnergyPad
 from oceanmaster.models.point import Point
 from oceanmaster.models.scrap import Scrap
 from oceanmaster.utils import manhattan_distance, next_point
-
+from oceanmaster.shortest_distances import GUIDE
 
 class BotContext:
     """
@@ -129,7 +129,7 @@ class BotContext:
         """
         return self.api.visible_enemies()
 
-    def sense_enemies_in_radius(self, bot: Point, radius: int = 1):
+    def sense_enemies_in_radius(self, bot: Point, radius: int = 1)->list[Bot]:
         """
         Detect enemies within a Manhattan radius of a given point.
 
@@ -146,7 +146,7 @@ class BotContext:
             if manhattan_distance(b.location, bot) <= radius
         ]
 
-    def sense_own_bots(self):
+    def sense_own_bots(self)->list[Bot]:
         """
         Get own bots excluding this bot.
 
@@ -155,7 +155,7 @@ class BotContext:
         """
         return [b for b in self.api.get_my_bots() if b.id != self.bot.id]
 
-    def sense_own_bots_in_radius(self, bot: Point, radius: int = 1):
+    def sense_own_bots_in_radius(self, bot: Point, radius: int = 1)->list[Bot]:
         """
         Detect own bots within a radius of a point.
 
@@ -172,7 +172,7 @@ class BotContext:
             if b.id != self.bot.id and manhattan_distance(b.location, bot) <= radius
         ]
 
-    def sense_algae(self, radius: int = 1):
+    def sense_algae(self, radius: int = 1)->list[Algae]:
         """
         Detect visible algae within a radius of the bot.
 
@@ -189,7 +189,7 @@ class BotContext:
             if manhattan_distance(a.location, pos) <= radius
         ]
 
-    def sense_algae_in_radius(self, bot: Point, radius: int = 1):
+    def sense_algae_in_radius(self, bot: Point, radius: int = 1)->list[Algae]:
         """
         Detect algae within a Manhattan radius of a point.
 
@@ -206,7 +206,7 @@ class BotContext:
             if manhattan_distance(a.location, bot) <= radius
         ]
 
-    def sense_scraps_in_radius(self, radius: int = 1):
+    def sense_scraps_in_radius(self, radius: int = 1)->list[Scrap]:
         """
         Detect visible scrap resources within a radius of the bot.
 
@@ -223,7 +223,7 @@ class BotContext:
             if manhattan_distance(a.location, pos) <= radius
         ]
 
-    def sense_objects(self):
+    def sense_objects(self)->dict[str,list]:
         """
         Retrieve all static and resource objects visible to the player.
 
@@ -236,7 +236,7 @@ class BotContext:
             "energypads": self.api.energypads(),
         }
 
-    def sense_walls(self):
+    def sense_walls(self)->list[Point]:
         """
         Get all visible walls.
 
@@ -245,7 +245,7 @@ class BotContext:
         """
         return self.api.visible_walls()
 
-    def sense_walls_in_radius(self, bot: Point, radius: int = 1):
+    def sense_walls_in_radius(self, bot: Point, radius: int = 1)->list[Point]:
         """
         Detect walls within a Manhattan radius of a point.
 
@@ -439,7 +439,7 @@ class BotContext:
 
     # ==================== COLLISION AVOIDANCE ====================
 
-    def move_target(self, bot: Point, target: Point):
+    def move_target(self, bot: Point, target: Point) -> Direction | None:
         """
         High-performance movement with collision and edge protection.
 
@@ -450,54 +450,22 @@ class BotContext:
         Returns:
             Direction | None: Preferred movement direction or None if blocked.
         """
-        x, y = bot.x, bot.y
-        at_left = x == 0
-        at_right = x == 19
-        at_bottom = y == 0
-        at_top = y == 19
+        src = f"{bot.x},{bot.y}"
+        trg = f"{target.x},{target.y}"
 
-        dx = target.x - x
-        dy = target.y - y
+        priority = GUIDE.get(src, {}).get(trg)
+        if not priority:
+            return None
 
-        if abs(dx) >= abs(dy):
-            preferred = Direction.EAST if dx > 0 else Direction.WEST
-        else:
-            preferred = Direction.NORTH if dy > 0 else Direction.SOUTH
-
-        def try_dir(d: Direction):
-            np = next_point(bot, d)
-            return np is not None and not self.check_blocked_point(np)
-
-        if (
-            (preferred == Direction.EAST and not at_right)
-            or (preferred == Direction.WEST and not at_left)
-            or (preferred == Direction.NORTH and not at_top)
-            or (preferred == Direction.SOUTH and not at_bottom)
-        ):
-            if try_dir(preferred):
-                return preferred
-
-        if at_left and try_dir(Direction.EAST):
-            return Direction.EAST
-        if at_right and try_dir(Direction.WEST):
-            return Direction.WEST
-        if at_bottom and try_dir(Direction.NORTH):
-            return Direction.NORTH
-        if at_top and try_dir(Direction.SOUTH):
-            return Direction.SOUTH
-
-        if not at_top and try_dir(Direction.NORTH):
-            return Direction.NORTH
-        if not at_right and try_dir(Direction.EAST):
-            return Direction.EAST
-        if not at_bottom and try_dir(Direction.SOUTH):
-            return Direction.SOUTH
-        if not at_left and try_dir(Direction.WEST):
-            return Direction.WEST
+        for d in priority.split(","):
+            direction = Direction[d]
+            if not self.check_blocked_direction(direction):
+                return direction
 
         return None
 
-    def move_target_speed(self, bot: Point, target: Point):
+
+    def move_target_speed(self, bot: Point, target: Point) -> tuple[Direction | None, int]:
         """
         High-performance SPEED movement with collision detection and edge protection.
 
@@ -511,66 +479,25 @@ class BotContext:
         if Ability.SPEED_BOOST.value not in self.bot.abilities:
             raise ValueError("Bot does not have SPEED ability equipped.")
 
-        x, y = bot.x, bot.y
-        at_left = x == 0
-        at_right = x == 19
-        at_bottom = y == 0
-        at_top = y == 19
+        src = f"{bot.x},{bot.y}"
+        trg = f"{target.x},{target.y}"
 
-        dx = target.x - x
-        dy = target.y - y
+        priority = GUIDE.get(src, {}).get(trg)
+        if not priority:
+            return None, 0
 
-        if abs(dx) >= abs(dy):
-            preferred = Direction.EAST if dx > 0 else Direction.WEST
-        else:
-            preferred = Direction.NORTH if dy > 0 else Direction.SOUTH
-
-        def speed_try(d: Direction):
-            p1 = next_point(bot, d)
+        for d in priority.split(","):
+            direction = Direction[d]
+            
+            p1 = next_point(bot, direction)
             if p1 is None or self.check_blocked_point(p1):
-                return None
-
-            p2 = next_point(p1, d)
+                continue
+            
+            p2 = next_point(p1, direction)
             if p2 is not None and not self.check_blocked_point(p2):
-                return d, 2
+                return direction, 2
 
-            return d, 1
-
-        if (
-            (preferred == Direction.EAST and not at_right)
-            or (preferred == Direction.WEST and not at_left)
-            or (preferred == Direction.NORTH and not at_top)
-            or (preferred == Direction.SOUTH and not at_bottom)
-        ):
-            res = speed_try(preferred)
-            if res:
-                return res
-
-        if at_left:
-            res = speed_try(Direction.EAST)
-            if res:
-                return res
-        if at_right:
-            res = speed_try(Direction.WEST)
-            if res:
-                return res
-        if at_bottom:
-            res = speed_try(Direction.NORTH)
-            if res:
-                return res
-        if at_top:
-            res = speed_try(Direction.SOUTH)
-            if res:
-                return res
-
-        for d in (
-            Direction.NORTH,
-            Direction.EAST,
-            Direction.SOUTH,
-            Direction.WEST,
-        ):
-            res = speed_try(d)
-            if res:
-                return res
+            return direction, 1
 
         return None, 0
+        

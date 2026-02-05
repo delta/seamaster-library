@@ -4,7 +4,6 @@ constants used in the OceanMaster game.
 
 from enum import Enum
 
-
 class Ability(str, Enum):
     """
     Abilities that bots can have.
