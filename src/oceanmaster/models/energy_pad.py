@@ -1,6 +1,7 @@
 """
 Represents an energy pad in the game.
 """
+
 from oceanmaster.models.point import Point
 
 
@@ -8,11 +9,12 @@ class EnergyPad:
     """
     Represents an energy pad in the game.
     """
+
     id: int
     location: Point
     available: int
     ticksleft: int
-    
+
     @classmethod
     def from_dict(cls, data: dict):
         e = cls()

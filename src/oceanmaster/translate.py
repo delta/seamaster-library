@@ -4,7 +4,7 @@ Provides functions to create various game actions.
 
 from oceanmaster.models.point import Point
 from oceanmaster.models.action import Action
-from oceanmaster.constants import Direction,Ability
+from oceanmaster.constants import Direction, Ability
 from oceanmaster.utils import BotIDAllocator
 
 BOT_ID_ALLOCATOR = BotIDAllocator()
@@ -51,6 +51,7 @@ def lockpick(location: Point):
     Creates a lockpick action.
     """
     return Action(Ability.LOCKPICK, {"location": location})
+
 
 def poison(direction: Direction):
     """

@@ -1,7 +1,6 @@
 from oceanmaster.models.bot import Bot
 from oceanmaster.models.visible_entities import VisibleEntities
 from oceanmaster.models.permanent_entities import PermanentEntities
-from typing import List
 
 
 class PlayerView:
@@ -27,14 +26,9 @@ class PlayerView:
         view.width = data["width"]
         view.height = data["height"]
 
-        view.bots = {
-            int(k): Bot.from_dict(v)
-            for k, v in data["bots"].items()
-        }
+        view.bots = {int(k): Bot.from_dict(v) for k, v in data["bots"].items()}
 
-        view.visible_entities = VisibleEntities.from_dict(
-            data["visible_entities"]
-        )
+        view.visible_entities = VisibleEntities.from_dict(data["visible_entities"])
 
         view.permanent_entities = PermanentEntities.from_dict(
             data["permanent_entities"]

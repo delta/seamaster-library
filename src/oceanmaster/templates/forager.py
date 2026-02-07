@@ -116,10 +116,7 @@ class Forager(BotController):
             return None
 
         for r in range(2, 11):
-            visible = (
-                ctx.sense_algae(radius=r)
-                + ctx.sense_scraps_in_radius(radius=r)
-            )
+            visible = ctx.sense_algae(radius=r) + ctx.sense_scraps_in_radius(radius=r)
             if visible:
                 target = visible[0].location
                 d = ctx.move_target(loc, target)

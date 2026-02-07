@@ -5,6 +5,7 @@ Initialization of Action model.
 from typing import Dict, Any
 from oceanmaster.constants import Ability
 
+
 class Action:
     """
     Represents an action taken by a bot.

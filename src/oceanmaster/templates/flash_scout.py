@@ -18,7 +18,7 @@ class FlashScout(BotController):
 
     def __init__(self, ctx):
         super().__init__(ctx)
-        self.status = "active"   
+        self.status = "active"
         self.target_pad_id = None
 
     def act(self):
@@ -27,17 +27,17 @@ class FlashScout(BotController):
 
         if self.status == "charging":
             pads = ctx.api.energypads()
-            pad = next((p for p in pads if p.id == self.target_pad_id),None)
+            pad = next((p for p in pads if p.id == self.target_pad_id), None)
 
             if pad:
                 if pad.ticksleft == 0:
                     self.status = "active"
                     self.target_pad_id = None
                     return None
-                
+
                 if bot_pos == pad.location:
                     return None
-                
+
                 d, steps = ctx.move_target_speed(bot_pos, pad.location)
                 if d:
                     return move_speed(d, steps)
@@ -61,7 +61,7 @@ class FlashScout(BotController):
                 d, steps = ctx.move_target_speed(bot_pos, visible[0].location)
                 if d:
                     return move_speed(d, steps)
-                
+
         return move(Direction.NORTH)
 
     @classmethod

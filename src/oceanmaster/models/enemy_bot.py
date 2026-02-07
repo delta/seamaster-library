@@ -23,10 +23,10 @@ class EnemyBot:
     # vision_radius: float
 
     @classmethod
-    def from_dict(cls, data: dict) :
+    def from_dict(cls, data: dict):
         b = cls()
-        b.id = data['id']
-        b.location = Point(**data['location'])
-        b.scraps = data['scraps']
-        b.abilities = data['abilities']
+        b.id = data["id"]
+        b.location = Point(**data["location"])
+        b.scraps = data["scraps"]
+        b.abilities = data["abilities"]
         return b

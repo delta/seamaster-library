@@ -3,7 +3,7 @@
 BotContext module provides a read-only interface for bot strategies
 to interact with the game engine state safely.
 """
-from operator import le
+
 from oceanmaster.constants import Direction, Ability, SCRAP_COSTS
 from oceanmaster.models.algae import Algae
 from oceanmaster.models.bank import Bank
@@ -13,6 +13,7 @@ from oceanmaster.models.point import Point
 from oceanmaster.models.scrap import Scrap
 from oceanmaster.utils import manhattan_distance, next_point
 from oceanmaster.shortest_distances import GUIDE
+
 
 class BotContext:
     """
@@ -28,7 +29,7 @@ class BotContext:
     A BotContext instance is created once per bot per tick.
     """
 
-    def __init__(self, api, bot): # TODO: Fix all the errors after adding type
+    def __init__(self, api, bot):  # TODO: Fix all the errors after adding type
         """
         Initialize the context for a single bot.
 
@@ -129,7 +130,7 @@ class BotContext:
         """
         return self.api.visible_enemies()
 
-    def sense_enemies_in_radius(self, bot: Point, radius: int = 1)->list[Bot]:
+    def sense_enemies_in_radius(self, bot: Point, radius: int = 1) -> list[Bot]:
         """
         Detect enemies within a Manhattan radius of a given point.
 
@@ -146,7 +147,7 @@ class BotContext:
             if manhattan_distance(b.location, bot) <= radius
         ]
 
-    def sense_own_bots(self)->list[Bot]:
+    def sense_own_bots(self) -> list[Bot]:
         """
         Get own bots excluding this bot.
 
@@ -155,7 +156,7 @@ class BotContext:
         """
         return [b for b in self.api.get_my_bots() if b.id != self.bot.id]
 
-    def sense_own_bots_in_radius(self, bot: Point, radius: int = 1)->list[Bot]:
+    def sense_own_bots_in_radius(self, bot: Point, radius: int = 1) -> list[Bot]:
         """
         Detect own bots within a radius of a point.
 
@@ -172,7 +173,7 @@ class BotContext:
             if b.id != self.bot.id and manhattan_distance(b.location, bot) <= radius
         ]
 
-    def sense_algae(self, radius: int = 1)->list[Algae]:
+    def sense_algae(self, radius: int = 1) -> list[Algae]:
         """
         Detect visible algae within a radius of the bot.
 
@@ -189,7 +190,7 @@ class BotContext:
             if manhattan_distance(a.location, pos) <= radius
         ]
 
-    def sense_algae_in_radius(self, bot: Point, radius: int = 1)->list[Algae]:
+    def sense_algae_in_radius(self, bot: Point, radius: int = 1) -> list[Algae]:
         """
         Detect algae within a Manhattan radius of a point.
 
@@ -206,7 +207,7 @@ class BotContext:
             if manhattan_distance(a.location, bot) <= radius
         ]
 
-    def sense_scraps_in_radius(self, radius: int = 1)->list[Scrap]:
+    def sense_scraps_in_radius(self, radius: int = 1) -> list[Scrap]:
         """
         Detect visible scrap resources within a radius of the bot.
 
@@ -223,7 +224,7 @@ class BotContext:
             if manhattan_distance(a.location, pos) <= radius
         ]
 
-    def sense_objects(self)->dict[str,list]:
+    def sense_objects(self) -> dict[str, list]:
         """
         Retrieve all static and resource objects visible to the player.
 
@@ -236,7 +237,7 @@ class BotContext:
             "energypads": self.api.energypads(),
         }
 
-    def sense_walls(self)->list[Point]:
+    def sense_walls(self) -> list[Point]:
         """
         Get all visible walls.
 
@@ -245,7 +246,7 @@ class BotContext:
         """
         return self.api.visible_walls()
 
-    def sense_walls_in_radius(self, bot: Point, radius: int = 1)->list[Point]:
+    def sense_walls_in_radius(self, bot: Point, radius: int = 1) -> list[Point]:
         """
         Detect walls within a Manhattan radius of a point.
 
@@ -328,7 +329,6 @@ class BotContext:
             or len(self.sense_enemies_in_radius(pos)) > 0
         )
 
-
     def check_blocked_direction(self, direction: Direction) -> bool:
         """
         Determine if moving in a direction would result in a blocked position.
@@ -376,9 +376,7 @@ class BotContext:
             return False
 
         cost = self.spawn_cost(abilities)
-        return (
-            self.api.get_scraps() >= cost
-        )
+        return self.api.get_scraps() >= cost
 
     # ==================== NEAREST OBJECT HELPERS ====================
 
@@ -393,7 +391,7 @@ class BotContext:
             key=lambda b: manhattan_distance(b.location, pos),
         )
 
-    def get_energy_pads(self)->list[EnergyPad]:
+    def get_energy_pads(self) -> list[EnergyPad]:
         """
         :return: List of energypafs
         :rtype: list[EnergyPad]
@@ -471,8 +469,9 @@ class BotContext:
 
         return None
 
-
-    def move_target_speed(self, bot: Point, target: Point) -> tuple[Direction | None, int]:
+    def move_target_speed(
+        self, bot: Point, target: Point
+    ) -> tuple[Direction | None, int]:
         """
         High-performance SPEED movement with collision detection and edge protection.
 
@@ -495,11 +494,11 @@ class BotContext:
 
         for d in priority.split(","):
             direction = Direction[d]
-            
+
             p1 = next_point(bot, direction)
             if p1 is None or self.check_blocked_point(p1):
                 continue
-            
+
             p2 = next_point(p1, direction)
             if p2 is not None and not self.check_blocked_point(p2):
                 return direction, 2
@@ -507,4 +506,3 @@ class BotContext:
             return direction, 1
 
         return None, 0
-        

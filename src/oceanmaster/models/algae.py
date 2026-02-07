@@ -13,7 +13,7 @@ class Algae:
 
     location: Point
     is_poison: AlgaeType
-    
+
     @classmethod
     def from_dict(cls, data: dict):
         a = cls()

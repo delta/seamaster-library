@@ -1,9 +1,11 @@
 from oceanmaster.models.point import Point
 
+
 class Bank:
     """
     Represents a bank in the game.
     """
+
     id: int
     location: Point
     deposit_occuring: bool

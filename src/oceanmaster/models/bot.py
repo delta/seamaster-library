@@ -23,15 +23,15 @@ class Bot:
     vision_radius: float
 
     @classmethod
-    def from_dict(cls, data: dict) :
+    def from_dict(cls, data: dict):
         b = cls()
-        b.id = data['id']
-        b.location = Point(**data['location'])
-        b.energy = data['energy']
-        b.scraps = data['scraps']
-        b.abilities = data['abilities']
-        b.algae_held = data['algae_held']
-        b.traversal_cost = data['traversal_cost']
-        b.status = data['status']
-        b.vision_radius = data['vision_radius']
+        b.id = data["id"]
+        b.location = Point(**data["location"])
+        b.energy = data["energy"]
+        b.scraps = data["scraps"]
+        b.abilities = data["abilities"]
+        b.algae_held = data["algae_held"]
+        b.traversal_cost = data["traversal_cost"]
+        b.status = data["status"]
+        b.vision_radius = data["vision_radius"]
         return b

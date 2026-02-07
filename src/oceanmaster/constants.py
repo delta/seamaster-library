@@ -4,6 +4,7 @@ constants used in the OceanMaster game.
 
 from enum import Enum
 
+
 class Ability(str, Enum):
     """
     Abilities that bots can have.
@@ -18,7 +19,6 @@ class Ability(str, Enum):
     LOCKPICK = "LOCKPICK"
     MOVE = "MOVE"
     DEPOSIT = "DEPOSIT"
-    
 
 
 class Direction(str, Enum):
@@ -59,8 +59,8 @@ ABILITY_COSTS = {
     "SCOUT": {"traversal": 1.5, "action": 0},
     "SELF_DESTRUCT": {"traversal": 0.5, "action": 0},
     "SPEED_BOOST": {"traversal": 1, "action": 0},
-    "SHIELD": {"traversal": 0.25, "action":0},
-    "POISON": {"traversal": 0.5, "action":2},
+    "SHIELD": {"traversal": 0.25, "action": 0},
+    "POISON": {"traversal": 0.5, "action": 2},
     "LOCKPICK": {"traversal": 1.5, "action": 0},
     "DEPOSIT": {"traversal": 0, "action": 1},
     "MOVE": {"traversal": 0, "action": 0},
@@ -73,5 +73,5 @@ SCRAP_COSTS = {
     "SPEED_BOOST": 10,
     "SHIELD": 5,
     "POISON": 5,
-    "LOCKPICK": 5
+    "LOCKPICK": 5,
 }

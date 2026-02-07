@@ -10,7 +10,6 @@ from oceanmaster.models.energy_pad import EnergyPad
 from oceanmaster.models.player_view import PlayerView
 from oceanmaster.models.bot import Bot
 from oceanmaster.models.point import Point
-from oceanmaster.models.scrap import Scrap
 
 
 class GameAPI:
@@ -22,21 +21,21 @@ class GameAPI:
         self.view = view
 
     # ---- GLOBAL ----
-    def get_tick(self) ->int:
+    def get_tick(self) -> int:
         """
         Returns the current tick of the game.
         returnType: int
         """
         return self.view.tick
 
-    def get_scraps(self)->int:
+    def get_scraps(self) -> int:
         """
         Returns the total scraps available in the game.
         returnType: int
         """
         return self.view.scraps
 
-    def get_my_bots(self) ->list[Bot]:
+    def get_my_bots(self) -> list[Bot]:
         """
         Returns a list of bots owned by the player.
         returnType: list[Bot]
@@ -44,7 +43,7 @@ class GameAPI:
         return list(self.view.bots.values())
 
     # ---- SENSING ----
-    def visible_enemies(self)->list[EnemyBot]:
+    def visible_enemies(self) -> list[EnemyBot]:
         """
         Returns a list of visible enemy bots.
         returnType: list[EnemyBot]
@@ -58,7 +57,7 @@ class GameAPI:
         """
         return self.view.visible_entities.scraps
 
-    def banks(self) ->list[Bank]:
+    def banks(self) -> list[Bank]:
         """
         Returns a list of visible banks.
         returnType: list[Bank]
@@ -91,10 +90,10 @@ class GameAPI:
         Returns whether a bot can be spawned
         returnType: bool
         """
-        cost=0
+        cost = 0
         for ability in abilities:
             if ability not in SCRAP_COSTS:
                 continue
-            cost+=SCRAP_COSTS[ability.value]
+            cost += SCRAP_COSTS[ability.value]
 
-        return cost<=self.view.scraps
+        return cost <= self.view.scraps
