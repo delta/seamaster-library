@@ -62,7 +62,6 @@ ABILITY_COSTS = {
     "SHIELD": {"traversal": 0.25, "action":0},
     "POISON": {"traversal": 0.5, "action":2},
     "LOCKPICK": {"traversal": 1.5, "action": 0},
-    "SHIELD": {"traversal": 0.25, "action": 0},
     "DEPOSIT": {"traversal": 0, "action": 1},
     "MOVE": {"traversal": 0, "action": 0},
 }
