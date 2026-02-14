@@ -20,9 +20,7 @@ class VisibleEntities:
     @classmethod
     def from_dict(cls, data: dict):
         v = cls()
-        # TODO: THIS ISN'T AN ACTUAL BOT DICT, it
         v.enemies = [EnemyBot.from_dict(bot) for bot in data["enemies"]]
-        # v.scraps = [Scrap.from_dict(scrap) for scrap in data["scraps"]]
-        v.scraps = []
+        v.scraps = [Scrap.from_dict(scrap) for scrap in data["scraps"]]
         v.algae = [Algae.from_dict(algae) for algae in data["algae"]]
         return v
