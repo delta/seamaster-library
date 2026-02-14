@@ -2,7 +2,7 @@
 Represents a scrap that is visible to the bot.
 """
 
-from oceanmaster.models.point import Point
+from seamaster.models.point import Point
 
 
 class Scrap:

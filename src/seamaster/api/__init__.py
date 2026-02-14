@@ -1,5 +1,5 @@
 """
-Docstring for oceanmaster.api
+Docstring for seamaster.api
 """
 
 from .game_api import GameAPI

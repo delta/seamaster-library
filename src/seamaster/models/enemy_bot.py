@@ -3,8 +3,8 @@ Initialization of EnemyBot model.
 """
 
 from typing import List
-from oceanmaster.models.point import Point
-from oceanmaster.constants import Ability
+from seamaster.models.point import Point
+from seamaster.constants import Ability
 
 
 class EnemyBot:

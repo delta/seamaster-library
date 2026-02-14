@@ -3,9 +3,9 @@ Initialization of VisibleEntities model.
 """
 
 from typing import List
-from oceanmaster.models.enemy_bot import EnemyBot
-from oceanmaster.models.scrap import Scrap
-from oceanmaster.models.algae import Algae
+from seamaster.models.enemy_bot import EnemyBot
+from seamaster.models.scrap import Scrap
+from seamaster.models.algae import Algae
 
 
 class VisibleEntities:

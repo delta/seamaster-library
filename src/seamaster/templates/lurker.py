@@ -1,8 +1,8 @@
-from oceanmaster.botbase import BotController
-from oceanmaster.translate import move, lockpick
-from oceanmaster.constants import Direction, Ability
-from oceanmaster.api import GameAPI
-from oceanmaster.utils import manhattan_distance
+from seamaster.botbase import BotController
+from seamaster.translate import move, lockpick
+from seamaster.constants import Direction, Ability
+from seamaster.api import GameAPI
+from seamaster.utils import manhattan_distance
 
 
 class Lurker(BotController):

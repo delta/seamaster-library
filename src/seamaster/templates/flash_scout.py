@@ -1,7 +1,7 @@
-from oceanmaster.api.game_api import GameAPI
-from oceanmaster.botbase import BotController
-from oceanmaster.translate import move, move_speed
-from oceanmaster.constants import Direction, Ability
+from seamaster.api.game_api import GameAPI
+from seamaster.botbase import BotController
+from seamaster.translate import move, move_speed
+from seamaster.constants import Direction, Ability
 
 
 class FlashScout(BotController):

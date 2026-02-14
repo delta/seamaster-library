@@ -2,7 +2,7 @@
 Represents an energy pad in the game.
 """
 
-from oceanmaster.models.point import Point
+from seamaster.models.point import Point
 
 
 class EnergyPad:

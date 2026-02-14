@@ -2,8 +2,8 @@
 Provides utility functions and classes for the OceanMining game.
 """
 
-from oceanmaster.models.point import Point
-from oceanmaster.constants import Direction
+from seamaster.models.point import Point
+from seamaster.constants import Direction
 
 
 def manhattan_distance(p1: Point, p2: Point) -> int:

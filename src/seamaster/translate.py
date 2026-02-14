@@ -2,10 +2,10 @@
 Provides functions to create various game actions.
 """
 
-from oceanmaster.models.point import Point
-from oceanmaster.models.action import Action
-from oceanmaster.constants import Direction, Ability
-from oceanmaster.utils import BotIDAllocator
+from seamaster.models.point import Point
+from seamaster.models.action import Action
+from seamaster.constants import Direction, Ability
+from seamaster.utils import BotIDAllocator
 
 BOT_ID_ALLOCATOR = BotIDAllocator()
 

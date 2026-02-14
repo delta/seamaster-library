@@ -1,8 +1,8 @@
-from oceanmaster.botbase import BotController
-from oceanmaster.translate import move, self_destruct
-from oceanmaster.constants import Ability, Direction
-from oceanmaster.api import GameAPI
-from oceanmaster.utils import manhattan_distance
+from seamaster.botbase import BotController
+from seamaster.translate import move, self_destruct
+from seamaster.constants import Ability, Direction
+from seamaster.api import GameAPI
+from seamaster.utils import manhattan_distance
 
 
 class Saboteur(BotController):

@@ -4,10 +4,10 @@ import json
 import sys
 from typing import Callable
 
-from oceanmaster.api import GameAPI
-from oceanmaster.models.player_view import PlayerView
-from oceanmaster.context.bot_context import BotContext
-from oceanmaster.botbase import BotController
+from seamaster.api import GameAPI
+from seamaster.models.player_view import PlayerView
+from seamaster.context.bot_context import BotContext
+from seamaster.botbase import BotController
 from submission import (
     spawn_policy as _spawn_policy,
 )  # in sandbox submission dir will present and main.py inside represents the user code

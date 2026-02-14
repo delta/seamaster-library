@@ -1,18 +1,18 @@
-# oceanmaster/context/bot_context.py
+# seamaster/context/bot_context.py
 """
 BotContext module provides a read-only interface for bot strategies
 to interact with the game engine state safely.
 """
 
-from oceanmaster.constants import Direction, Ability, SCRAP_COSTS
-from oceanmaster.models.algae import Algae
-from oceanmaster.models.bank import Bank
-from oceanmaster.models.bot import Bot
-from oceanmaster.models.energy_pad import EnergyPad
-from oceanmaster.models.point import Point
-from oceanmaster.models.scrap import Scrap
-from oceanmaster.utils import manhattan_distance, next_point
-from oceanmaster.shortest_distances import GUIDE
+from seamaster.constants import Direction, Ability, SCRAP_COSTS
+from seamaster.models.algae import Algae
+from seamaster.models.bank import Bank
+from seamaster.models.bot import Bot
+from seamaster.models.energy_pad import EnergyPad
+from seamaster.models.point import Point
+from seamaster.models.scrap import Scrap
+from seamaster.utils import manhattan_distance, next_point
+from seamaster.shortest_distances import GUIDE
 
 
 class BotContext:

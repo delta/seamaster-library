@@ -2,14 +2,14 @@
 GameAPI module provides an interface to interact with the game state.
 """
 
-from oceanmaster.constants import Ability, SCRAP_COSTS
-from oceanmaster.models.algae import Algae
-from oceanmaster.models.bank import Bank
-from oceanmaster.models.enemy_bot import EnemyBot
-from oceanmaster.models.energy_pad import EnergyPad
-from oceanmaster.models.player_view import PlayerView
-from oceanmaster.models.bot import Bot
-from oceanmaster.models.point import Point
+from seamaster.constants import Ability, SCRAP_COSTS
+from seamaster.models.algae import Algae
+from seamaster.models.bank import Bank
+from seamaster.models.enemy_bot import EnemyBot
+from seamaster.models.energy_pad import EnergyPad
+from seamaster.models.player_view import PlayerView
+from seamaster.models.bot import Bot
+from seamaster.models.point import Point
 
 
 class GameAPI:

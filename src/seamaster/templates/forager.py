@@ -1,8 +1,8 @@
-from oceanmaster.botbase import BotController
-from oceanmaster.translate import harvest, move
-from oceanmaster.constants import Ability
-from oceanmaster.utils import direction_from_point, manhattan_distance
-from oceanmaster.api import GameAPI
+from seamaster.botbase import BotController
+from seamaster.translate import harvest, move
+from seamaster.constants import Ability
+from seamaster.utils import direction_from_point, manhattan_distance
+from seamaster.api import GameAPI
 
 
 class Forager(BotController):

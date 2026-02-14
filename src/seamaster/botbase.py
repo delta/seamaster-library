@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
-from oceanmaster.constants import Ability
-from oceanmaster.models.action import Action
+from seamaster.constants import Ability
+from seamaster.models.action import Action
 
 
 class BotController(ABC):

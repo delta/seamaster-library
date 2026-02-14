@@ -1,4 +1,4 @@
-from oceanmaster.models.point import Point
+from seamaster.models.point import Point
 
 
 class Bank:

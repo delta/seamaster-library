@@ -1,7 +1,7 @@
-from oceanmaster.models.bank import Bank
-from oceanmaster.models.energy_pad import EnergyPad
+from seamaster.models.bank import Bank
+from seamaster.models.energy_pad import EnergyPad
 from typing import List
-from oceanmaster.models.point import Point
+from seamaster.models.point import Point
 
 
 class PermanentEntities:

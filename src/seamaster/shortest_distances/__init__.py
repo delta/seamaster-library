@@ -2,7 +2,7 @@ import json
 from importlib import resources
 
 with (
-    resources.files("oceanmaster.shortest_distances")
+    resources.files("seamaster.shortest_distances")
     .joinpath("directions.json")
     .open("r") as f
 ):

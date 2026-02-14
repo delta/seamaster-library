@@ -2,7 +2,7 @@
 Represents an algae entity in the game.
 """
 
-from oceanmaster.constants import AlgaeType
+from seamaster.constants import AlgaeType
 from .point import Point
 
 

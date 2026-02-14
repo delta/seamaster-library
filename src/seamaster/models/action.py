@@ -3,7 +3,7 @@ Initialization of Action model.
 """
 
 from typing import Dict, Any
-from oceanmaster.constants import Ability
+from seamaster.constants import Ability
 
 
 class Action:
