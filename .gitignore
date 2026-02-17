@@ -6,6 +6,11 @@ __pycache__/
 # C extensions
 *.so
 
+tests/
+fakeGoBackend.py
+
+tick*.json
+scripts/
 # Distribution / packaging
 .Python
 build/
