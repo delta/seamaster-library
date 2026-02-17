@@ -1,5 +1,5 @@
 """
-Provides utility functions and classes for the OceanMining game.
+Provides utility functions and classes for the SeaWars game.
 """
 
 from seamaster.models.point import Point

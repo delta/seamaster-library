@@ -7,9 +7,10 @@ name = "seamaster"
 version = "0.0.1"
 authors = [
   { name = "Allen", email = "108123012@nitt.edu" },
-  { name = "Niharika", email = "108124080@nitt.edu" }
+  { name = "Niharika", email = "108124080@nitt.edu" },
+  { name = "Dash Skndash", email = "110124025@nitt.edu" }
 ]
-description = "Oceanmaster is a package which helps users write and submit code to participate in the Ocean Mining game."
+description = "Seamaster is a package which helps users write and submit code to participate in the Seawars game."
 readme = "README.md"
 requires-python = ">=3.9"
 license = "MIT"

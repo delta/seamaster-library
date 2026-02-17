@@ -1,5 +1,5 @@
 """
-OceanMaster AI SDK
+Seamaster AI SDK
 
 High-level imports for common usage.
 """
