@@ -53,8 +53,14 @@ def lockpick(location: Point):
     return Action(Ability.LOCKPICK, {"location": location})
 
 
-def poison(direction: Direction):
+def poison(direction: Direction | None):
     """
     Creates a poison action in the specified direction.
     """
-    return Action(Ability.POISON, {"direction": direction.value})
+    return Action(Ability.POISON, {"direction": direction.value if direction else None})
+
+def deposit(direction: Direction | None):
+    """
+    Creates a deposit action in the specified direction.
+    """
+    return Action(Ability.DEPOSIT, {"direction": direction.value if direction else None})

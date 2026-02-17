@@ -11,7 +11,7 @@ from seamaster.models.bot import Bot
 from seamaster.models.energy_pad import EnergyPad
 from seamaster.models.point import Point
 from seamaster.models.scrap import Scrap
-from seamaster.utils import manhattan_distance, next_point
+from seamaster.utils import manhattan_distance
 from seamaster.shortest_distances import GUIDE
 
 
@@ -262,6 +262,47 @@ class BotContext:
 
     # ==================== PATHING ====================
 
+    def next_point(self, pos: Point, direction: Direction) -> Point | None:
+        """
+        Compute the next point for one step in `direction`.
+        Returns None if the step would go out of bounds.
+        """
+        x, y = pos.x, pos.y
+        if direction == Direction.NORTH:
+            y -= 1
+        elif direction == Direction.SOUTH:
+            y += 1
+        elif direction == Direction.EAST:
+            x += 1
+        elif direction == Direction.WEST:
+            x -= 1
+
+        if x < 0 or y < 0 or x >= self.api.view.width or y >= self.api.view.height:
+            return None
+        return Point(x, y)
+
+    def next_point_speed(self, pos: Point, direction: Direction, step: int) -> Point | None:
+        """
+        Compute the next point for a SPEED move in `direction` with `step` size.
+        Returns None if any step would go out of bounds.
+        """
+        if step not in (1, 2):
+            raise ValueError("Step size must be 1 or 2.")
+
+        x,y = pos.x, pos.y
+        if direction == Direction.NORTH:
+            y -= step
+        elif direction == Direction.SOUTH:
+            y += step
+        elif direction == Direction.EAST:
+            x += step
+        elif direction == Direction.WEST:
+            x -= step
+
+        if x < 0 or y < 0 or x >= self.api.view.width or y >= self.api.view.height:
+            return None
+        return Point(x, y)
+
     def can_move(self, direction: Direction) -> bool:
         """
         Check whether movement in a given direction stays within map bounds.
@@ -272,18 +313,7 @@ class BotContext:
         Returns:
             bool: True if move is inside map bounds.
         """
-        x, y = self.bot.location.x, self.bot.location.y
-
-        if direction == Direction.NORTH:
-            y += 1
-        elif direction == Direction.SOUTH:
-            y -= 1
-        elif direction == Direction.EAST:
-            x += 1
-        elif direction == Direction.WEST:
-            x -= 1
-
-        return 0 <= x < self.api.view.width and 0 <= y < self.api.view.height
+        return self.next_point(self.bot.location, direction) is not None
 
     def shortest_path(self, target: Point) -> int:
         """
@@ -353,19 +383,10 @@ class BotContext:
         Returns:
             bool: True if the position in that direction is blocked.
         """
-        pos = self.bot.location
-        x, y = pos.x, pos.y
-
-        if direction == Direction.NORTH:
-            y += 1
-        elif direction == Direction.SOUTH:
-            y -= 1
-        elif direction == Direction.EAST:
-            x += 1
-        elif direction == Direction.WEST:
-            x -= 1
-
-        return self.check_blocked_point(Point(x, y))
+        next_pos = self.next_point(self.bot.location, direction)
+        if next_pos is None:
+            return True
+        return self.check_blocked_point(next_pos)
 
     def can_defend(self) -> bool:
         """
@@ -484,18 +505,8 @@ class BotContext:
         return None
 
     def move_target_speed(
-        self, bot: Point, target: Point
-    ) -> tuple[Direction | None, int]:
-        """
-        High-performance SPEED movement with collision detection and edge protection.
-
-        Args:
-            bot (Point): Current bot position.
-            target (Point): Target position.
-
-        Returns:
-            tuple[Direction | None, int]: Preferred movement direction and step size (1 or 2), or (None, 0) if blocked.
-        """
+    self, bot: Point, target: Point
+) -> tuple[Direction | None, int]:
         if Ability.SPEED_BOOST.value not in self.bot.abilities:
             raise ValueError("Bot does not have SPEED ability equipped.")
 
@@ -511,17 +522,21 @@ class BotContext:
         for d in priority.split(","):
             direction = Direction[d]
 
-            p1 = next_point(bot, direction)
+            # --- Check 1-step ---
+            p1 = self.next_point_speed(bot, direction, 1)
             if p1 is None or self.check_blocked_point(p1):
                 continue
 
+            # store fallback if 2-step fails
             if one_step_fallback is None:
                 one_step_fallback = direction
 
-            p2 = next_point(p1, direction)
+            # --- Check 2-step ---
+            p2 = self.next_point_speed(bot, direction, 2)
             if p2 is not None and not self.check_blocked_point(p2):
                 return direction, 2
 
+        # If no valid 2-step, try 1-step
         if one_step_fallback is not None:
             return one_step_fallback, 1
 

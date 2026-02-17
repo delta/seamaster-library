@@ -13,9 +13,7 @@ class FlashScout(BotController):
     Dies if it reaches poisonous algae.
     """
 
-    ABILITIES = [Ability.SCOUT, Ability.SPEED_BOOST]
-
-    ENERGY_THRESHOLD = 10
+    ABILITIES = [Ability.SCOUT, Ability.SPEED_BOOST, Ability.SELF_DESTRUCT]
 
     def __init__(self, ctx):
         super().__init__(ctx)
@@ -25,39 +23,6 @@ class FlashScout(BotController):
     def act(self):
         ctx = self.ctx
         loc = ctx.get_location()
-
-        if self.status == "charging":
-            pads = ctx.api.energypads()
-            pad = next((p for p in pads if p.id == self.target_pad_id), None)
-
-            if pad:
-                if pad.ticksleft == 0:
-                    self.status = "active"
-                    self.target_pad_id = None
-                    return None
-
-                if loc == pad.location:
-                    return None
-
-                d, steps = ctx.move_target_speed(loc, pad.location)
-                if d:
-                    return move_speed(d, steps)
-                return None
-
-        if ctx.get_energy() < self.ENERGY_THRESHOLD:
-            pad = ctx.get_nearest_energy_pad()
-            self.status = "charging"
-            self.target_pad_id = pad.id
-            return None
-
-        # visible = ctx.sense_algae_in_radius(loc)
-
-        # unknown = [a for a in visible if a.is_poison == "UNKNOWN"]
-
-        # if unknown:
-        #     d, steps = ctx.move_target_speed(loc, unknown[0].location)
-        #     if d:
-        #         return move_speed(d, steps)
 
         for radius in range(3, 20):
             visible = ctx.sense_algae_in_radius(loc,radius=radius)
