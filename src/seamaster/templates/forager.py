@@ -1,3 +1,4 @@
+from re import A
 from seamaster.botbase import BotController
 from seamaster.translate import harvest, move
 from seamaster.constants import Ability, AlgaeType
@@ -103,14 +104,16 @@ class Forager(BotController):
             return None
 
         visible = ctx.sense_algae_in_radius(loc)
-        if visible:
+        if visible and visible[0].is_poison==AlgaeType.FALSE.value:
             return harvest(None)
             
         visible = ctx.sense_algae_in_radius(loc,1)
         if visible:
-            target = visible[0].location
-            d = direction_from_point(loc, target)
-            return harvest(d)
+            for a in visible:
+                if a.is_poison ==AlgaeType.FALSE.value:
+                    target = a.location
+                    d = direction_from_point(loc, target)
+                    return harvest(d)
 
         for r in range(2, 11):
             visible = ctx.sense_algae_in_radius(loc, radius=r)
