@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from seamaster.constants import Ability
+from seamaster.context.bot_context import BotContext
 from seamaster.models.action import Action
 
 
@@ -9,6 +10,9 @@ class BotController(ABC):
     """
 
     ABILITIES: list[Ability]
+    
+    ctx:BotContext
+    
 
     def __init__(self, ctx, args: dict | None = None):
         self.ctx = ctx

@@ -173,24 +173,8 @@ class BotContext:
             if b.id != self.bot.id and manhattan_distance(b.location, bot) <= radius
         ]
 
-    def sense_algae(self, radius: int = 1) -> list[Algae]:
-        """
-        Detect visible algae within a radius of the bot.
-
-        Args:
-            radius (int): Manhattan distance radius.
-
-        Returns:
-            list[Algae]: Algae entities within radius.
-        """
-        pos = self.bot.location
-        return [
-            a
-            for a in self.api.visible_algae()
-            if manhattan_distance(a.location, pos) <= radius
-        ]
-
-    def sense_algae_in_radius(self, bot: Point, radius: int = 1) -> list[Algae]:
+  
+    def sense_algae_in_radius(self, bot: Point, radius: int = 0) -> list[Algae]:
         """
         Detect algae within a Manhattan radius of a point.
 
@@ -204,24 +188,24 @@ class BotContext:
         return [
             a
             for a in self.api.visible_algae()
-            if manhattan_distance(a.location, bot) <= radius
+            if manhattan_distance(a.location, bot) == radius
         ]
 
-    def sense_scraps_in_radius(self, radius: int = 1) -> list[Scrap]:
+    def sense_scraps_in_radius(self, bot: Point, radius: int = 0) -> list[Scrap]:
         """
-        Detect visible scrap resources within a radius of the bot.
+        Detect scraps within a Manhattan radius of a point.
 
         Args:
+            bot (Point): Center position.
             radius (int): Manhattan distance radius.
 
         Returns:
-            list[Scrap]: Scrap entities within radius.
+            list[Scrap]: Scraps within radius.
         """
-        pos = self.bot.location
         return [
-            a
-            for a in self.api.visible_scraps()
-            if manhattan_distance(a.location, pos) <= radius
+            s
+            for s in self.api.sense_bot_scraps()
+            if manhattan_distance(s.location, bot) == radius
         ]
 
     def sense_objects(self) -> dict[str, list]:
@@ -316,7 +300,11 @@ class BotContext:
 
     def check_blocked_point(self, pos: Point) -> bool:
         """
-        Determine if a position is blocked by any obstacle.
+        Determine if a position is blocked by:
+        - Out of bounds
+        - Wall
+        - Enemy
+        - Own bot (optional, recommended for collision avoidance)
 
         Args:
             pos (Point): Position to check.
@@ -324,10 +312,36 @@ class BotContext:
         Returns:
             bool: True if blocked.
         """
-        return (
-            len(self.sense_walls_in_radius(pos)) > 0
-            or len(self.sense_enemies_in_radius(pos)) > 0
-        )
+
+        if (
+            pos.x < 0
+            or pos.y < 0
+            or pos.x >= self.api.view.width
+            or pos.y >= self.api.view.height
+        ):
+            return True
+
+        if any(w == pos for w in self.api.visible_walls()):
+            print(f"Blocked by wall at {pos}")
+            return True
+
+        if any(e.location == pos for e in self.api.visible_enemies()):
+            print(f"Blocked by enemy at {pos}")
+            return True
+
+        if any(b.location == pos for b in self.api.get_my_bots()):
+            print(f"Blocked by own bot at {pos}")
+            return True
+
+        if any(a.location == pos for a in self.api.visible_algae()):
+            print(f"Blocked by algae at {pos}")
+            return True
+        
+        if any(s.location == pos for s in self.api.energypads()):
+            print(f"Blocked by energy pad at {pos}")
+            return True
+        return False
+
 
     def check_blocked_direction(self, direction: Direction) -> bool:
         """
@@ -492,6 +506,8 @@ class BotContext:
         if not priority:
             return None, 0
 
+        one_step_fallback = None
+
         for d in priority.split(","):
             direction = Direction[d]
 
@@ -499,10 +515,14 @@ class BotContext:
             if p1 is None or self.check_blocked_point(p1):
                 continue
 
+            if one_step_fallback is None:
+                one_step_fallback = direction
+
             p2 = next_point(p1, direction)
             if p2 is not None and not self.check_blocked_point(p2):
                 return direction, 2
 
-            return direction, 1
+        if one_step_fallback is not None:
+            return one_step_fallback, 1
 
         return None, 0

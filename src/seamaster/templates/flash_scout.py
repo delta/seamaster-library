@@ -1,7 +1,8 @@
 from seamaster.api.game_api import GameAPI
 from seamaster.botbase import BotController
 from seamaster.translate import move, move_speed
-from seamaster.constants import Direction, Ability
+from seamaster.constants import Direction, Ability, AlgaeType
+
 
 
 class FlashScout(BotController):
@@ -23,7 +24,7 @@ class FlashScout(BotController):
 
     def act(self):
         ctx = self.ctx
-        bot_pos = ctx.get_location()
+        loc = ctx.get_location()
 
         if self.status == "charging":
             pads = ctx.api.energypads()
@@ -35,10 +36,10 @@ class FlashScout(BotController):
                     self.target_pad_id = None
                     return None
 
-                if bot_pos == pad.location:
+                if loc == pad.location:
                     return None
 
-                d, steps = ctx.move_target_speed(bot_pos, pad.location)
+                d, steps = ctx.move_target_speed(loc, pad.location)
                 if d:
                     return move_speed(d, steps)
                 return None
@@ -49,20 +50,29 @@ class FlashScout(BotController):
             self.target_pad_id = pad.id
             return None
 
-        visible = ctx.sense_algae()
-        if visible:
-            d, steps = ctx.move_target_speed(bot_pos, visible[0].location)
-            if d:
-                return move_speed(d, steps)
+        # visible = ctx.sense_algae_in_radius(loc)
 
-        for radius in range(2, 11):
-            visible = ctx.sense_algae(radius=radius)
-            if visible:
-                d, steps = ctx.move_target_speed(bot_pos, visible[0].location)
+        # unknown = [a for a in visible if a.is_poison == "UNKNOWN"]
+
+        # if unknown:
+        #     d, steps = ctx.move_target_speed(loc, unknown[0].location)
+        #     if d:
+        #         return move_speed(d, steps)
+
+        for radius in range(3, 20):
+            visible = ctx.sense_algae_in_radius(loc,radius=radius)
+            unknown = [a for a in visible if a.is_poison == AlgaeType.UNKNOWN.value]
+
+            if unknown:
+                d, steps = ctx.move_target_speed(loc, unknown[0].location)
                 if d:
+                    print(f"Moving to unknown algae at {unknown[0].location}")
+                    print(f"Direction {d}")
                     return move_speed(d, steps)
 
         return move(Direction.NORTH)
+
+
 
     @classmethod
     def can_spawn(cls, api: GameAPI) -> bool:

@@ -1,6 +1,6 @@
 from seamaster.botbase import BotController
 from seamaster.translate import harvest, move
-from seamaster.constants import Ability
+from seamaster.constants import Ability, AlgaeType
 from seamaster.utils import direction_from_point, manhattan_distance
 from seamaster.api import GameAPI
 
@@ -102,23 +102,21 @@ class Forager(BotController):
             self.target_bank_id = bank.id
             return None
 
-        visible = ctx.sense_algae() + ctx.sense_scraps_in_radius()
+        visible = ctx.sense_algae_in_radius(loc)
+        if visible:
+            return harvest(None)
+            
+        visible = ctx.sense_scraps_in_radius(loc,1)
         if visible:
             target = visible[0].location
-
-            if manhattan_distance(loc, target) == 1:
-                d = direction_from_point(loc, target)
-                return harvest(d)
-
-            d = ctx.move_target(loc, target)
-            if d:
-                return move(d)
-            return None
+            d = direction_from_point(loc, target)
+            return harvest(d)
 
         for r in range(2, 11):
-            visible = ctx.sense_algae(radius=r) + ctx.sense_scraps_in_radius(radius=r)
-            if visible:
-                target = visible[0].location
+            visible = ctx.sense_algae_in_radius(loc, radius=r)
+            non_poisonous = [a for a in visible if a.is_poison==AlgaeType.FALSE.value]
+            if non_poisonous:
+                target = non_poisonous[0].location
                 d = ctx.move_target(loc, target)
                 if d:
                     return move(d)

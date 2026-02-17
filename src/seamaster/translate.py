@@ -24,11 +24,11 @@ def move_speed(direction: Direction, step: int):
     return Action(Ability.MOVE, {"direction": direction.value, "step": step})
 
 
-def harvest(direction: Direction):
+def harvest(direction: Direction | None):
     """ "
     Creates a harvest action in the specified direction.
     """
-    return Action(Ability.HARVEST, {"direction": direction.value})
+    return Action(Ability.HARVEST, {"direction": direction.value if direction else None})
 
 
 def self_destruct():
