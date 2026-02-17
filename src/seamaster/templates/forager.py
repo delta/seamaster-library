@@ -106,7 +106,7 @@ class Forager(BotController):
         if visible:
             return harvest(None)
             
-        visible = ctx.sense_scraps_in_radius(loc,1)
+        visible = ctx.sense_algae_in_radius(loc,1)
         if visible:
             target = visible[0].location
             d = direction_from_point(loc, target)
