@@ -375,7 +375,7 @@ class BotContext:
         #     return True
         
         if any(s.location == pos for s in self.api.energypads()):
-            print(f"Blocked by energy pad at {pos}")
+            print(f"Blocked by energy pad at pos: {pos}")
             return True
         return False
 
