@@ -370,9 +370,9 @@ class BotContext:
             print(f"Blocked by own bot at {pos}")
             return True
 
-        if any(a.location == pos for a in self.api.visible_algae()):
-            print(f"Blocked by algae at {pos}")
-            return True
+        # if any(a.location == pos for a in self.api.visible_algae()):
+        #     print(f"Blocked by algae at {pos}")
+        #     return True
         
         if any(s.location == pos for s in self.api.energypads()):
             print(f"Blocked by energy pad at {pos}")
