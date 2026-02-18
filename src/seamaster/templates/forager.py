@@ -1,4 +1,3 @@
-from re import A
 from seamaster.botbase import BotController
 from seamaster.translate import harvest, move, deposit
 from seamaster.constants import Ability, AlgaeType
