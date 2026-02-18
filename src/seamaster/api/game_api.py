@@ -11,7 +11,6 @@ from seamaster.models.player_view import PlayerView
 from seamaster.models.bot import Bot
 from seamaster.models.point import Point
 
-
 class GameAPI:
     """
     GameAPI provides methods to interact with the game state.

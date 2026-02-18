@@ -24,7 +24,7 @@ def move_speed(direction: Direction, step: int):
     return Action(Ability.MOVE, {"direction": direction.value, "step": step})
 
 
-def harvest(direction: Direction | None):
+def harvest(direction: Direction | None = None):
     """ "
     Creates a harvest action in the specified direction.
     """

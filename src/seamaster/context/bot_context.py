@@ -4,7 +4,6 @@ BotContext module provides a read-only interface for bot strategies
 to interact with the game engine state safely.
 """
 
-from collections import deque
 from seamaster.constants import Direction, Ability, SCRAP_COSTS
 from seamaster.models.algae import Algae
 from seamaster.models.bank import Bank
@@ -13,7 +12,6 @@ from seamaster.models.energy_pad import EnergyPad
 from seamaster.models.point import Point
 from seamaster.models.scrap import Scrap
 from seamaster.utils import manhattan_distance
-from seamaster.shortest_distances import GUIDE, DIST
 from seamaster.utils import get_optimal_next_hops, get_shortest_distance_between_points
 
 
@@ -175,52 +173,6 @@ class BotContext:
             if b.id != self.bot.id and manhattan_distance(b.location, bot) <= radius
         ]
 
-    def bfs_shortest_path(self, n, m, startx, starty, endx, endy):
-        # Directions: right, left, down, up
-        directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
-
-        # Visited matrix
-        visited = [[False for _ in range(m)] for _ in range(n)]
-
-        # Parent matrix to reconstruct path
-        parent = [[None for _ in range(m)] for _ in range(n)]
-
-        queue = deque()
-        queue.append((startx, starty))
-        visited[startx][starty] = True
-
-        while queue:
-            x, y = queue.popleft()
-
-            # If we reached destination
-            if (x, y) == (endx, endy):
-                break
-
-            for dx, dy in directions:
-                nx, ny = x + dx, y + dy
-
-                # Check bounds
-                if 0 <= nx < n and 0 <= ny < m:
-                    if not visited[nx][ny]:
-                        visited[nx][ny] = True
-                        parent[nx][ny] = (x, y)
-                        queue.append((nx, ny))
-
-        # If destination not reached
-        if not visited[endx][endy]:
-            return []  # No path
-
-        # Reconstruct path
-        path = []
-        cur = (endx, endy)
-
-        while cur:
-            path.append(cur)
-            cur = parent[cur[0]][cur[1]]
-
-        path.reverse()
-        return path
-
     def sense_unknown_algae(self, bot: Point) -> list[tuple[int, Algae]]:
         """
         Detect algae within a Manhattan radius of a point.
@@ -241,6 +193,20 @@ class BotContext:
                 result.append((d, a))
 
         return sorted(result, key=lambda x: x[0])
+    
+    def sense_non_poisionous_algae(self,bot:Point) -> list[tuple[int, Algae]]:
+        """
+        Returns List of non_poisonous algae
+        """
+        result = []
+
+        for a in self.api.visible_algae():
+            d = get_shortest_distance_between_points(bot, a.location)
+
+            if d is not None and a.is_poison == "FALSE":
+                result.append((d, a))
+        sorted_result = sorted(result, key=lambda x: x[0])
+        return sorted_result
 
     def sense_scraps_in_radius(self, bot: Point, radius: int = 0) -> list[Scrap]:
         """
@@ -368,19 +334,6 @@ class BotContext:
         """
         return self.next_point(self.bot.location, direction) is not None
 
-    def shortest_path(self, target: Point) -> int:
-        """
-        Compute Manhattan distance to a target point.
-
-        Args:
-            target (Point): Target location.
-
-        Returns:
-            int: Manhattan distance.
-        """
-        bx, by = self.bot.location.x, self.bot.location.y
-        return abs(bx - target.x) + abs(by - target.y)
-
     def check_blocked_point(self, pos: Point) -> bool:
         """
         Determine if a position is blocked by:
@@ -405,24 +358,14 @@ class BotContext:
             return True
 
         if any(w == pos for w in self.api.visible_walls()):
-            print(f"Blocked by wall at {pos}")
             return True
 
         if any(e.location == pos for e in self.api.visible_enemies()):
-            print(f"Blocked by enemy at {pos}")
             return True
 
         if any(b.location == pos for b in self.api.get_my_bots()):
-            print(f"Blocked by own bot at {pos}")
             return True
 
-        # if any(a.location == pos for a in self.api.visible_algae()):
-        #     print(f"Blocked by algae at {pos}")
-        #     return True
-
-        if any(s.location == pos for s in self.api.energypads()):
-            print(f"Blocked by energy pad at pos: {pos}")
-            return True
         return False
 
     def check_blocked_direction(self, direction: Direction) -> bool:
@@ -493,8 +436,53 @@ class BotContext:
         pos = self.bot.location
         return min(
             self.api.energypads(),
-            key=lambda p: manhattan_distance(p.location, pos),
+            key=lambda p: get_shortest_distance_between_points(p.location, pos),
         )
+
+    
+    def get_my_banks(self, bot: Point) -> list[Bank] | None:
+        """
+        Returns a list of my banks sorted in ascending order of distance
+        (distance is min distance to any adjacent cell of the bank)
+        """
+
+        my_banks = [b for b in self.api.banks() if b.is_bank_owner]
+
+        if not my_banks:
+            return None
+
+        dirs = [(1, 0), (0, 1), (-1, 0), (0, -1)]
+
+        def min_adjacent_distance(bank: Bank) -> int:
+            distances = []
+            for dx, dy in dirs:
+                adj = Point(bank.location.x + dx, bank.location.y + dy)
+                if not self.check_blocked_point(adj):
+                    dist = get_shortest_distance_between_points(bot, adj)
+                    if dist is not None:
+                        distances.append(dist)
+            return min(distances)
+
+        # Sort banks by min adjacent distance
+        my_banks.sort(key=min_adjacent_distance)
+        return my_banks
+
+
+
+    def get_opponent_banks(self,bot:Point) -> list[Bank]|None:
+        """
+        Returns a list of opponents banks sorted in ascending order of distance
+        """
+        opp_banks = [b for b in self.api.banks() if not b.is_bank_owner]
+        if(not opp_banks):
+            return None
+        dist1 = get_shortest_distance_between_points(bot,opp_banks[0].location)
+        dist2 = get_shortest_distance_between_points(bot,opp_banks[1].location)
+
+        if dist1>dist2:
+            return opp_banks.reverse()
+        
+        return opp_banks
 
     def get_nearest_scrap(self) -> Scrap:
         """
