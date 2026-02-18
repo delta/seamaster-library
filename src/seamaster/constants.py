@@ -53,10 +53,12 @@ class AlgaeType(str, Enum):
     TRUE = "TRUE"
     FALSE = "FALSE"
 
+
 class BotStatus(str, Enum):
     """
     Gives Bot's Status
     """
+
     ACTIVE = "ACTIVE"
     DEPOSITING = "DEPOSITING"
     CHARGING = "CHARGING"

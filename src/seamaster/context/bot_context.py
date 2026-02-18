@@ -193,8 +193,8 @@ class BotContext:
                 result.append((d, a))
 
         return sorted(result, key=lambda x: x[0])
-    
-    def sense_non_poisionous_algae(self,bot:Point) -> list[tuple[int, Algae]]:
+
+    def sense_non_poisionous_algae(self, bot: Point) -> list[tuple[int, Algae]]:
         """
         Returns List of non_poisonous algae
         """
@@ -439,7 +439,6 @@ class BotContext:
             key=lambda p: get_shortest_distance_between_points(p.location, pos),
         )
 
-    
     def get_my_banks(self, bot: Point) -> list[Bank] | None:
         """
         Returns a list of my banks sorted in ascending order of distance
@@ -467,21 +466,19 @@ class BotContext:
         my_banks.sort(key=min_adjacent_distance)
         return my_banks
 
-
-
-    def get_opponent_banks(self,bot:Point) -> list[Bank]|None:
+    def get_opponent_banks(self, bot: Point) -> list[Bank] | None:
         """
         Returns a list of opponents banks sorted in ascending order of distance
         """
         opp_banks = [b for b in self.api.banks() if not b.is_bank_owner]
-        if(not opp_banks):
+        if not opp_banks:
             return None
-        dist1 = get_shortest_distance_between_points(bot,opp_banks[0].location)
-        dist2 = get_shortest_distance_between_points(bot,opp_banks[1].location)
+        dist1 = get_shortest_distance_between_points(bot, opp_banks[0].location)
+        dist2 = get_shortest_distance_between_points(bot, opp_banks[1].location)
 
-        if dist1>dist2:
+        if dist1 > dist2:
             return opp_banks.reverse()
-        
+
         return opp_banks
 
     def get_nearest_scrap(self) -> Scrap:
@@ -553,7 +550,6 @@ class BotContext:
         one_step_fallback = None
 
         for direction in priority:
-
             # --- Check 1-step ---
             p1 = self.next_point_speed(bot, direction, 1)
             if p1 is None or self.check_blocked_point(p1):

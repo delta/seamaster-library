@@ -59,11 +59,11 @@ class Forager(BotController):
         loc = ctx.get_location()
 
         if self.status == BotStatus.CHARGING:
-            if ctx.get_energy()>self.energy_threshold:
+            if ctx.get_energy() > self.energy_threshold:
                 self.status = BotStatus.ACTIVE
                 self.target_pad_id = None
                 return None
-            
+
             pads = ctx.api.energypads()
             pad = next((p for p in pads if p.id == self.target_pad_id), None)
 
@@ -78,12 +78,12 @@ class Forager(BotController):
 
         if self.status == BotStatus.DEPOSITING:
             if ctx.get_algae_held() == 0:
-                    self.status = BotStatus.ACTIVE
-                    self.target_bank_id = None
-                    return None
+                self.status = BotStatus.ACTIVE
+                self.target_bank_id = None
+                return None
 
             banks = ctx.api.banks()
-            bank = next((b for b in banks if b.id == self.target_bank_id),None)
+            bank = next((b for b in banks if b.id == self.target_bank_id), None)
 
             if bank:
                 dist = manhattan_distance(loc, bank.location)
@@ -98,9 +98,7 @@ class Forager(BotController):
                 if bank.deposit_occuring:
                     return None
 
-                
-
-        if ctx.get_energy() <=self.energy_threshold :
+        if ctx.get_energy() <= self.energy_threshold:
             pad = ctx.get_nearest_energy_pad()
             self.status = BotStatus.CHARGING
             self.target_pad_id = pad.id
@@ -116,16 +114,18 @@ class Forager(BotController):
         non_poisonous = ctx.sense_non_poisionous_algae(loc)
 
         if non_poisonous:
-            if manhattan_distance(non_poisonous[0][1].location,loc)==0:
+            if manhattan_distance(non_poisonous[0][1].location, loc) == 0:
                 return harvest(None)
 
         if non_poisonous:
-            if manhattan_distance(non_poisonous[0][1].location,loc)==1:
-                direction = get_direction_in_one_radius(loc,non_poisonous[0][1].location)
+            if manhattan_distance(non_poisonous[0][1].location, loc) == 1:
+                direction = get_direction_in_one_radius(
+                    loc, non_poisonous[0][1].location
+                )
                 return harvest(direction)
-        
+
         if non_poisonous:
-            d = ctx.move_target(loc,non_poisonous[0][1].location)
+            d = ctx.move_target(loc, non_poisonous[0][1].location)
             if d:
                 return move(d)
         return None
