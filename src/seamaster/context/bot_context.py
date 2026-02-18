@@ -3,7 +3,7 @@
 BotContext module provides a read-only interface for bot strategies
 to interact with the game engine state safely.
 """
-
+from collections import deque
 from seamaster.constants import Direction, Ability, SCRAP_COSTS
 from seamaster.models.algae import Algae
 from seamaster.models.bank import Bank
@@ -12,12 +12,7 @@ from seamaster.models.energy_pad import EnergyPad
 from seamaster.models.point import Point
 from seamaster.models.scrap import Scrap
 from seamaster.utils import manhattan_distance
-<<<<<<< Updated upstream
 from seamaster.shortest_distances import GUIDE, DIST
-=======
-from seamaster.shortest_distances import GUIDE
-from collections import deque
->>>>>>> Stashed changes
 
 
 class BotContext:
@@ -224,11 +219,7 @@ class BotContext:
         path.reverse()
         return path
 
-<<<<<<< Updated upstream
     def sense_unknown_algae(self, bot: Point) -> list[tuple[int, Algae]]:
-=======
-    def sense_algae_in_radius(self, bot: Point, radius: int = 0) -> list[Algae]:
->>>>>>> Stashed changes
         """
         Detect algae within a Manhattan radius of a point.
 
@@ -239,7 +230,6 @@ class BotContext:
         Returns:
             list[Algae]: Algae within radius.
         """
-<<<<<<< Updated upstream
         src = f"{bot.x},{bot.y}"
         result = []
 
@@ -252,14 +242,6 @@ class BotContext:
 
         return sorted(result, key=lambda x: x[0])
 
-=======
-        for a in self.api.visible_algae():
-            print(a.location)
-        return [a for a in self.api.visible_algae()
-            if self.bfs_shortest_path(20, 20, bot.x, bot.y, a.location.x, a.location.y) == radius
-        ]
-        
->>>>>>> Stashed changes
     def sense_scraps_in_radius(self, bot: Point, radius: int = 0) -> list[Scrap]:
         """
         Detect scraps within a Manhattan radius of a point.
