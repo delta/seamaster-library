@@ -1,7 +1,7 @@
-# OceanMaster Bot Programming – User Guide
+# Seamaster Bot Programming – User Guide
 > Note: This library is still under development, and the contents of this README might change in the future.
 
-OceanMaster is a strategy-based bot programming platform where you design **autonomous bots** that explore, harvest, fight, and survive in a grid-based world.
+Seamaster is a strategy-based bot programming platform where you design **autonomous bots** that explore, harvest, fight, and survive in a grid-based world.
 
 > **Key Mindset**
 > You do **not** control bots every turn.
