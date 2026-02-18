@@ -54,6 +54,16 @@ class AlgaeType(str, Enum):
     FALSE = "FALSE"
 
 
+class BotStatus(str, Enum):
+    """
+    Gives Bot's Status
+    """
+
+    ACTIVE = "ACTIVE"
+    DEPOSITING = "DEPOSITING"
+    CHARGING = "CHARGING"
+
+
 ABILITY_COSTS = {
     "HARVEST": {"traversal": 0, "action": 1},
     "SCOUT": {"traversal": 1.5, "action": 0},

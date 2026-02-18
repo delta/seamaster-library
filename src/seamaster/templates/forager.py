@@ -1,7 +1,7 @@
 from seamaster.botbase import BotController
 from seamaster.translate import harvest, move, deposit
-from seamaster.constants import Ability, AlgaeType
-from seamaster.utils import direction_from_point, manhattan_distance
+from seamaster.constants import Ability, BotStatus
+from seamaster.utils import get_direction_in_one_radius, manhattan_distance
 from seamaster.api import GameAPI
 
 
@@ -38,9 +38,11 @@ class Forager(BotController):
             ID of the bank currently being targeted
         """
         super().__init__(ctx, args)
-        self.status = "active"
+        self.status = BotStatus.ACTIVE
         self.target_pad_id = None
         self.target_bank_id = None
+        self.energy_threshold = 20
+        self.algae_threshold = 5
 
     def act(self):
         """
@@ -51,88 +53,81 @@ class Forager(BotController):
         2. Check for low energy and initiate charging if needed
         3. Check algae capacity and initiate depositing if needed
         4. Harvest nearby algae or scraps if within interaction range
-        5. Move toward the nearest visible resource
+        5. Move toward the nearest unknown resource
         """
         ctx = self.ctx
         loc = ctx.get_location()
-        print(f"my status is {self.status}")
-        if self.target_bank_id:
-            print(f"target bank id is {self.target_bank_id}")
 
-        if self.status == "charging":
-            pads = ctx.api.energypads()
-            pad = next((p for p in pads if p.id == self.target_pad_id), None)
-
-            if pad is None or pad.ticksleft == 0:
-                self.status = "active"
+        if self.status == BotStatus.CHARGING:
+            if ctx.get_energy() > self.energy_threshold:
+                self.status = BotStatus.ACTIVE
                 self.target_pad_id = None
                 return None
 
-            if manhattan_distance(loc, pad.location) == 1:
-                return None
+            pads = ctx.api.energypads()
+            pad = next((p for p in pads if p.id == self.target_pad_id), None)
 
-            d = ctx.move_target(loc, pad.location)
-            if d:
-                return move(d)
-            return None
-
-        if self.status == "depositing":
-            banks = ctx.api.banks()
-            bank = next((b for b in banks if b.id == self.target_bank_id))
-
-            dist = manhattan_distance(loc, bank.location)
-
-            if dist > 1:
-                d = ctx.move_target(loc, bank.location)
+            if pad:
+                if manhattan_distance(loc, pad.location) == 0:
+                    return None
+            if pad:
+                d = ctx.move_target(loc, pad.location)
                 if d:
                     return move(d)
+            return None
 
-            if not bank.deposit_occuring:
-                print("giving deposit instruction")
-                return deposit(None)
-
-            if bank.deposit_occuring:
-                return None
-
+        if self.status == BotStatus.DEPOSITING:
             if ctx.get_algae_held() == 0:
-                self.status = "active"
+                self.status = BotStatus.ACTIVE
                 self.target_bank_id = None
                 return None
 
-        if ctx.get_energy() < 5:
+            banks = ctx.api.banks()
+            bank = next((b for b in banks if b.id == self.target_bank_id), None)
+
+            if bank:
+                dist = manhattan_distance(loc, bank.location)
+
+                if dist > 1:
+                    d = ctx.move_target(loc, bank.location)
+                    if d:
+                        return move(d)
+
+                if not bank.deposit_occuring:
+                    return deposit(None)
+                if bank.deposit_occuring:
+                    return None
+
+        if ctx.get_energy() <= self.energy_threshold:
             pad = ctx.get_nearest_energy_pad()
-            self.status = "charging"
+            self.status = BotStatus.CHARGING
             self.target_pad_id = pad.id
             return None
 
-        if ctx.get_algae_held() >= 5:
-            bank = ctx.get_nearest_bank()
-            self.status = "depositing"
-            self.target_bank_id = bank.id
+        if ctx.get_algae_held() >= self.algae_threshold:
+            bank = ctx.get_my_banks(loc)
+            self.status = BotStatus.DEPOSITING
+            if bank:
+                self.target_bank_id = bank[0].id
             return None
 
-        visible = ctx.sense_algae_in_radius(loc)
-        if visible and visible[0].is_poison == AlgaeType.FALSE.value:
-            return harvest(None)
+        non_poisonous = ctx.sense_non_poisionous_algae(loc)
 
-        visible = ctx.sense_algae_in_radius(loc, 1)
-        if visible:
-            for a in visible:
-                if a.is_poison == AlgaeType.FALSE.value:
-                    target = a.location
-                    d = direction_from_point(loc, target)
-                    return harvest(d)
+        if non_poisonous:
+            if manhattan_distance(non_poisonous[0][1].location, loc) == 0:
+                return harvest(None)
 
-        for r in range(2, 11):
-            visible = ctx.sense_algae_in_radius(loc, radius=r)
-            non_poisonous = [a for a in visible if a.is_poison == AlgaeType.FALSE.value]
-            if non_poisonous:
-                target = non_poisonous[0].location
-                d = ctx.move_target(loc, target)
-                if d:
-                    return move(d)
-                return None
+        if non_poisonous:
+            if manhattan_distance(non_poisonous[0][1].location, loc) == 1:
+                direction = get_direction_in_one_radius(
+                    loc, non_poisonous[0][1].location
+                )
+                return harvest(direction)
 
+        if non_poisonous:
+            d = ctx.move_target(loc, non_poisonous[0][1].location)
+            if d:
+                return move(d)
         return None
 
     @classmethod
