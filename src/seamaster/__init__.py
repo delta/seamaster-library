@@ -49,7 +49,7 @@ from seamaster.translate import (
 )
 
 # Utils
-from seamaster.utils import manhattan_distance, next_point, direction_from_point
+from seamaster.utils import manhattan_distance, next_point, direction_from_point, get_optimal_next_hops, get_shortest_distance_between_points
 
 
 __all__ = [
@@ -83,4 +83,6 @@ __all__ = [
     "manhattan_distance",
     "next_point",
     "direction_from_point",
+    "get_optimal_next_hops",
+    "get_shortest_distance_between_points",
 ]

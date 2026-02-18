@@ -89,18 +89,3 @@ def get_shortest_distance_between_points (start: Point, end: Point) -> int:
     distance = DIST.get(src, {}).get(trg)
     return distance
 
-class BotIDAllocator:
-    """
-    bot ID generator.
-    """
-
-    def __init__(self, start: int = 1):
-        self._next_id = start
-
-    def allocate(self) -> int:
-        """
-        Allocate and return the next available bot ID.
-        """
-        bot_id = self._next_id
-        self._next_id += 1
-        return bot_id
