@@ -14,6 +14,7 @@ from seamaster.models.point import Point
 from seamaster.models.scrap import Scrap
 from seamaster.utils import manhattan_distance
 from seamaster.shortest_distances import GUIDE, DIST
+from seamaster.utils import get_optimal_next_hops, get_shortest_distance_between_points
 
 
 class BotContext:
@@ -231,12 +232,10 @@ class BotContext:
         Returns:
             list[Algae]: Algae within radius.
         """
-        src = f"{bot.x},{bot.y}"
         result = []
 
         for a in self.api.visible_algae():
-            trg = f"{a.location.x},{a.location.y}"
-            d = DIST.get(src, {}).get(trg)
+            d = get_shortest_distance_between_points(bot, a.location)
 
             if d is not None and a.is_poison == "UNKNOWN":
                 result.append((d, a))
@@ -543,15 +542,11 @@ class BotContext:
         Returns:
             Direction | None: Preferred movement direction or None if blocked.
         """
-        src = f"{bot.x},{bot.y}"
-        trg = f"{target.x},{target.y}"
-
-        priority = GUIDE.get(src, {}).get(trg)
+        priority = get_optimal_next_hops(bot, target)
         if not priority:
             return None
 
-        for d in priority.split(","):
-            direction = Direction[d]
+        for direction in priority:
             if not self.check_blocked_direction(direction):
                 return direction
 
@@ -563,17 +558,13 @@ class BotContext:
         if Ability.SPEED_BOOST.value not in self.bot.abilities:
             raise ValueError("Bot does not have SPEED ability equipped.")
 
-        src = f"{bot.x},{bot.y}"
-        trg = f"{target.x},{target.y}"
-
-        priority = GUIDE.get(src, {}).get(trg)
+        priority = get_optimal_next_hops(bot, target)
         if not priority:
             return None, 0
 
         one_step_fallback = None
 
-        for d in priority.split(","):
-            direction = Direction[d]
+        for direction in priority:
 
             # --- Check 1-step ---
             p1 = self.next_point_speed(bot, direction, 1)
