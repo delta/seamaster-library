@@ -12,7 +12,7 @@ from seamaster.models.energy_pad import EnergyPad
 from seamaster.models.point import Point
 from seamaster.models.scrap import Scrap
 from seamaster.utils import manhattan_distance
-from seamaster.shortest_distances import GUIDE
+from seamaster.shortest_distances import GUIDE, DIST
 
 
 class BotContext:
@@ -172,9 +172,8 @@ class BotContext:
             for b in self.api.get_my_bots()
             if b.id != self.bot.id and manhattan_distance(b.location, bot) <= radius
         ]
-
   
-    def sense_algae_in_radius(self, bot: Point, radius: int = 0) -> list[Algae]:
+    def sense_unknown_algae(self, bot: Point) -> list[tuple[int, Algae]]:
         """
         Detect algae within a Manhattan radius of a point.
 
@@ -185,11 +184,19 @@ class BotContext:
         Returns:
             list[Algae]: Algae within radius.
         """
-        return [
-            a
-            for a in self.api.visible_algae()
-            if manhattan_distance(a.location, bot) == radius
-        ]
+        src = f"{bot.x},{bot.y}"
+        result = []
+
+        for a in self.api.visible_algae():
+            trg = f"{a.location.x},{a.location.y}"
+            d = DIST.get(src, {}).get(trg)
+
+            if d is not None and a.is_poison == "UNKNOWN":
+                result.append((d, a))
+
+        return sorted(result, key=lambda x: x[0])
+
+
 
     def sense_scraps_in_radius(self, bot: Point, radius: int = 0) -> list[Scrap]:
         """

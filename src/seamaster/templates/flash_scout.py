@@ -24,16 +24,13 @@ class FlashScout(BotController):
         ctx = self.ctx
         loc = ctx.get_location()
 
-        for radius in range(3, 20):
-            visible = ctx.sense_algae_in_radius(loc,radius=radius)
-            unknown = [a for a in visible if a.is_poison == AlgaeType.UNKNOWN.value]
+        unknown = ctx.sense_unknown_algae(loc)
 
-            if unknown:
-                d, steps = ctx.move_target_speed(loc, unknown[0].location)
-                if d:
-                    print(f"Moving to unknown algae at {unknown[0].location}")
-                    print(f"Direction {d}")
-                    return move_speed(d, steps)
+        if unknown:
+            d, algae = unknown[0]
+            direction, steps = ctx.move_target_speed(loc, algae.location)
+            if direction:
+                return move_speed(direction, steps)
 
         return move(Direction.NORTH)
 
