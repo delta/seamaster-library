@@ -5,7 +5,7 @@ from seamaster.constants import Direction, Ability, AlgaeType
 
 
 
-class FlashScout(BotController):
+class Scout(BotController):
     """
     A fast scout bot that rushes to algae to identify them.
     Does NOT harvest.
@@ -13,12 +13,11 @@ class FlashScout(BotController):
     Dies if it reaches poisonous algae.
     """
 
-    ABILITIES = [Ability.SCOUT, Ability.SPEED_BOOST, Ability.SELF_DESTRUCT]
+    ABILITIES = [Ability.SCOUT, Ability.SELF_DESTRUCT]
 
     def __init__(self, ctx):
         super().__init__(ctx)
         self.status = "active"
-        self.target_pad_id = None
 
     def act(self):
         ctx = self.ctx
@@ -28,11 +27,11 @@ class FlashScout(BotController):
 
         if unknown:
             d, algae = unknown[0]
-            direction, steps = ctx.move_target_speed(loc, algae.location)
+            direction = ctx.move_target(loc, algae.location)
             if direction:
-                return move_speed(direction, steps)
+                return move(direction)
 
-        return move(Direction.NORTH)
+        return None
 
 
 
