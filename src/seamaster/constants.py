@@ -1,5 +1,5 @@
 """
-constants used in the OceanMaster game.
+constants used in the Seawars game.
 """
 
 from enum import Enum
