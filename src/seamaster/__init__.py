@@ -15,7 +15,7 @@ from seamaster.botbase import BotController
 
 # templates
 from seamaster.templates.forager import Forager
-from seamaster.templates.scout import FlashScout
+from seamaster.templates.scout import Scout
 from seamaster.templates.lurker import Lurker
 from seamaster.templates.saboteur import Saboteur
 
@@ -57,7 +57,7 @@ __all__ = [
     "BotContext",
     "BotController",
     "Forager",
-    "FlashScout",
+    "Scout",
     "Lurker",
     "Saboteur",
     "Point",
