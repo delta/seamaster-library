@@ -4,6 +4,7 @@ Provides utility functions and classes for the SeaWars game.
 
 from seamaster.models.point import Point
 from seamaster.constants import Direction
+from seamaster.shortest_distances import GUIDE, DIST
 
 
 def manhattan_distance(p1: Point, p2: Point) -> int:
@@ -68,6 +69,25 @@ def direction_from_point(p1: Point, p2: Point) -> Direction:
         return Direction.EAST if dx > 0 else Direction.WEST
     return Direction.NORTH if dy > 0 else Direction.SOUTH
 
+
+def get_optimal_next_hops (start: Point, end: Point) -> list[Direction]:
+    src = f"{start.x},{start.y}"
+    trg = f"{end.x},{end.y}"
+    priority = GUIDE.get(src, {}).get(trg)
+    if not priority:
+        return []
+    directions = []
+    for d in priority.split(","):
+        direction = Direction[d]
+        directions.append(direction)
+    return directions
+
+
+def get_shortest_distance_between_points (start: Point, end: Point) -> int:
+    src = f"{start.x},{start.y}"
+    trg = f"{end.x},{end.y}"
+    distance = DIST.get(src, {}).get(trg)
+    return distance
 
 class BotIDAllocator:
     """
