@@ -3,6 +3,7 @@
 BotContext module provides a read-only interface for bot strategies
 to interact with the game engine state safely.
 """
+
 from collections import deque
 from seamaster.constants import Direction, Ability, SCRAP_COSTS
 from seamaster.models.algae import Algae
@@ -172,50 +173,50 @@ class BotContext:
             for b in self.api.get_my_bots()
             if b.id != self.bot.id and manhattan_distance(b.location, bot) <= radius
         ]
-       
-    def bfs_shortest_path(self,n, m, startx, starty, endx, endy):
+
+    def bfs_shortest_path(self, n, m, startx, starty, endx, endy):
         # Directions: right, left, down, up
-        directions = [(0,1), (0,-1), (1,0), (-1,0)]
-        
+        directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+
         # Visited matrix
         visited = [[False for _ in range(m)] for _ in range(n)]
-        
+
         # Parent matrix to reconstruct path
         parent = [[None for _ in range(m)] for _ in range(n)]
-        
+
         queue = deque()
         queue.append((startx, starty))
         visited[startx][starty] = True
-        
+
         while queue:
             x, y = queue.popleft()
-            
+
             # If we reached destination
             if (x, y) == (endx, endy):
                 break
-            
+
             for dx, dy in directions:
                 nx, ny = x + dx, y + dy
-                
+
                 # Check bounds
                 if 0 <= nx < n and 0 <= ny < m:
                     if not visited[nx][ny]:
                         visited[nx][ny] = True
                         parent[nx][ny] = (x, y)
                         queue.append((nx, ny))
-        
+
         # If destination not reached
         if not visited[endx][endy]:
             return []  # No path
-        
+
         # Reconstruct path
         path = []
         cur = (endx, endy)
-        
+
         while cur:
             path.append(cur)
             cur = parent[cur[0]][cur[1]]
-        
+
         path.reverse()
         return path
 

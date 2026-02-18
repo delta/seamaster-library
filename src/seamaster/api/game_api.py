@@ -30,6 +30,9 @@ class GameAPI:
         """
         return self.view.tick
 
+    def get_max_energy(self) -> int:
+        return 50
+
     def get_scraps(self) -> int:
         """
         Returns the total scraps available in the game.
