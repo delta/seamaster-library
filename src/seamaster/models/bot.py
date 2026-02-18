@@ -20,7 +20,6 @@ class Bot:
     algae_held: int
     traversal_cost: float
     status: str
-    vision_radius: float
 
     @classmethod
     def from_dict(cls, data: dict):
@@ -33,5 +32,4 @@ class Bot:
         b.algae_held = data["algae_held"]
         b.traversal_cost = data["traversal_cost"]
         b.status = data["status"]
-        b.vision_radius = data["vision_radius"]
         return b

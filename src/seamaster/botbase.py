@@ -10,9 +10,8 @@ class BotController(ABC):
     """
 
     ABILITIES: list[Ability]
-    
-    ctx:BotContext
-    
+
+    ctx: BotContext
 
     def __init__(self, ctx, args: dict | None = None):
         self.ctx = ctx

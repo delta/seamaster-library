@@ -4,6 +4,7 @@ BotContext module provides a read-only interface for bot strategies
 to interact with the game engine state safely.
 """
 
+from collections import deque
 from seamaster.constants import Direction, Ability, SCRAP_COSTS
 from seamaster.models.algae import Algae
 from seamaster.models.bank import Bank
@@ -11,8 +12,8 @@ from seamaster.models.bot import Bot
 from seamaster.models.energy_pad import EnergyPad
 from seamaster.models.point import Point
 from seamaster.models.scrap import Scrap
-from seamaster.utils import manhattan_distance, next_point
-from seamaster.shortest_distances import GUIDE
+from seamaster.utils import manhattan_distance
+from seamaster.shortest_distances import GUIDE, DIST
 
 
 class BotContext:
@@ -173,8 +174,53 @@ class BotContext:
             if b.id != self.bot.id and manhattan_distance(b.location, bot) <= radius
         ]
 
-  
-    def sense_algae_in_radius(self, bot: Point, radius: int = 0) -> list[Algae]:
+    def bfs_shortest_path(self, n, m, startx, starty, endx, endy):
+        # Directions: right, left, down, up
+        directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+
+        # Visited matrix
+        visited = [[False for _ in range(m)] for _ in range(n)]
+
+        # Parent matrix to reconstruct path
+        parent = [[None for _ in range(m)] for _ in range(n)]
+
+        queue = deque()
+        queue.append((startx, starty))
+        visited[startx][starty] = True
+
+        while queue:
+            x, y = queue.popleft()
+
+            # If we reached destination
+            if (x, y) == (endx, endy):
+                break
+
+            for dx, dy in directions:
+                nx, ny = x + dx, y + dy
+
+                # Check bounds
+                if 0 <= nx < n and 0 <= ny < m:
+                    if not visited[nx][ny]:
+                        visited[nx][ny] = True
+                        parent[nx][ny] = (x, y)
+                        queue.append((nx, ny))
+
+        # If destination not reached
+        if not visited[endx][endy]:
+            return []  # No path
+
+        # Reconstruct path
+        path = []
+        cur = (endx, endy)
+
+        while cur:
+            path.append(cur)
+            cur = parent[cur[0]][cur[1]]
+
+        path.reverse()
+        return path
+
+    def sense_unknown_algae(self, bot: Point) -> list[tuple[int, Algae]]:
         """
         Detect algae within a Manhattan radius of a point.
 
@@ -185,11 +231,17 @@ class BotContext:
         Returns:
             list[Algae]: Algae within radius.
         """
-        return [
-            a
-            for a in self.api.visible_algae()
-            if manhattan_distance(a.location, bot) == radius
-        ]
+        src = f"{bot.x},{bot.y}"
+        result = []
+
+        for a in self.api.visible_algae():
+            trg = f"{a.location.x},{a.location.y}"
+            d = DIST.get(src, {}).get(trg)
+
+            if d is not None and a.is_poison == "UNKNOWN":
+                result.append((d, a))
+
+        return sorted(result, key=lambda x: x[0])
 
     def sense_scraps_in_radius(self, bot: Point, radius: int = 0) -> list[Scrap]:
         """
@@ -262,6 +314,49 @@ class BotContext:
 
     # ==================== PATHING ====================
 
+    def next_point(self, pos: Point, direction: Direction) -> Point | None:
+        """
+        Compute the next point for one step in `direction`.
+        Returns None if the step would go out of bounds.
+        """
+        x, y = pos.x, pos.y
+        if direction == Direction.NORTH:
+            y -= 1
+        elif direction == Direction.SOUTH:
+            y += 1
+        elif direction == Direction.EAST:
+            x += 1
+        elif direction == Direction.WEST:
+            x -= 1
+
+        if x < 0 or y < 0 or x >= self.api.view.width or y >= self.api.view.height:
+            return None
+        return Point(x, y)
+
+    def next_point_speed(
+        self, pos: Point, direction: Direction, step: int
+    ) -> Point | None:
+        """
+        Compute the next point for a SPEED move in `direction` with `step` size.
+        Returns None if any step would go out of bounds.
+        """
+        if step not in (1, 2):
+            raise ValueError("Step size must be 1 or 2.")
+
+        x, y = pos.x, pos.y
+        if direction == Direction.NORTH:
+            y -= step
+        elif direction == Direction.SOUTH:
+            y += step
+        elif direction == Direction.EAST:
+            x += step
+        elif direction == Direction.WEST:
+            x -= step
+
+        if x < 0 or y < 0 or x >= self.api.view.width or y >= self.api.view.height:
+            return None
+        return Point(x, y)
+
     def can_move(self, direction: Direction) -> bool:
         """
         Check whether movement in a given direction stays within map bounds.
@@ -272,18 +367,7 @@ class BotContext:
         Returns:
             bool: True if move is inside map bounds.
         """
-        x, y = self.bot.location.x, self.bot.location.y
-
-        if direction == Direction.NORTH:
-            y += 1
-        elif direction == Direction.SOUTH:
-            y -= 1
-        elif direction == Direction.EAST:
-            x += 1
-        elif direction == Direction.WEST:
-            x -= 1
-
-        return 0 <= x < self.api.view.width and 0 <= y < self.api.view.height
+        return self.next_point(self.bot.location, direction) is not None
 
     def shortest_path(self, target: Point) -> int:
         """
@@ -333,15 +417,14 @@ class BotContext:
             print(f"Blocked by own bot at {pos}")
             return True
 
-        if any(a.location == pos for a in self.api.visible_algae()):
-            print(f"Blocked by algae at {pos}")
-            return True
-        
+        # if any(a.location == pos for a in self.api.visible_algae()):
+        #     print(f"Blocked by algae at {pos}")
+        #     return True
+
         if any(s.location == pos for s in self.api.energypads()):
-            print(f"Blocked by energy pad at {pos}")
+            print(f"Blocked by energy pad at pos: {pos}")
             return True
         return False
-
 
     def check_blocked_direction(self, direction: Direction) -> bool:
         """
@@ -353,19 +436,10 @@ class BotContext:
         Returns:
             bool: True if the position in that direction is blocked.
         """
-        pos = self.bot.location
-        x, y = pos.x, pos.y
-
-        if direction == Direction.NORTH:
-            y += 1
-        elif direction == Direction.SOUTH:
-            y -= 1
-        elif direction == Direction.EAST:
-            x += 1
-        elif direction == Direction.WEST:
-            x -= 1
-
-        return self.check_blocked_point(Point(x, y))
+        next_pos = self.next_point(self.bot.location, direction)
+        if next_pos is None:
+            return True
+        return self.check_blocked_point(next_pos)
 
     def can_defend(self) -> bool:
         """
@@ -486,16 +560,6 @@ class BotContext:
     def move_target_speed(
         self, bot: Point, target: Point
     ) -> tuple[Direction | None, int]:
-        """
-        High-performance SPEED movement with collision detection and edge protection.
-
-        Args:
-            bot (Point): Current bot position.
-            target (Point): Target position.
-
-        Returns:
-            tuple[Direction | None, int]: Preferred movement direction and step size (1 or 2), or (None, 0) if blocked.
-        """
         if Ability.SPEED_BOOST.value not in self.bot.abilities:
             raise ValueError("Bot does not have SPEED ability equipped.")
 
@@ -511,17 +575,21 @@ class BotContext:
         for d in priority.split(","):
             direction = Direction[d]
 
-            p1 = next_point(bot, direction)
+            # --- Check 1-step ---
+            p1 = self.next_point_speed(bot, direction, 1)
             if p1 is None or self.check_blocked_point(p1):
                 continue
 
+            # store fallback if 2-step fails
             if one_step_fallback is None:
                 one_step_fallback = direction
 
-            p2 = next_point(p1, direction)
+            # --- Check 2-step ---
+            p2 = self.next_point_speed(bot, direction, 2)
             if p2 is not None and not self.check_blocked_point(p2):
                 return direction, 2
 
+        # If no valid 2-step, try 1-step
         if one_step_fallback is not None:
             return one_step_fallback, 1
 
