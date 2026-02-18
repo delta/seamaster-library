@@ -4,7 +4,7 @@ from seamaster.models.permanent_entities import PermanentEntities
 
 
 class PlayerView:
-    side: int # 0 for left, 1 for right
+    side: int  # 0 for left, 1 for right
     tick: int
     scraps: int
     algae: int

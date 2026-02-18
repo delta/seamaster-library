@@ -4,7 +4,6 @@ from seamaster.translate import move
 from seamaster.constants import Ability
 
 
-
 class Scout(BotController):
     """
     A fast scout bot that rushes to algae to identify them.
@@ -32,8 +31,6 @@ class Scout(BotController):
                 return move(direction)
 
         return None
-
-
 
     @classmethod
     def can_spawn(cls, api: GameAPI) -> bool:

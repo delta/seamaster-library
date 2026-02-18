@@ -172,7 +172,7 @@ class BotContext:
             for b in self.api.get_my_bots()
             if b.id != self.bot.id and manhattan_distance(b.location, bot) <= radius
         ]
-  
+
     def sense_unknown_algae(self, bot: Point) -> list[tuple[int, Algae]]:
         """
         Detect algae within a Manhattan radius of a point.
@@ -195,8 +195,6 @@ class BotContext:
                 result.append((d, a))
 
         return sorted(result, key=lambda x: x[0])
-
-
 
     def sense_scraps_in_radius(self, bot: Point, radius: int = 0) -> list[Scrap]:
         """
@@ -288,7 +286,9 @@ class BotContext:
             return None
         return Point(x, y)
 
-    def next_point_speed(self, pos: Point, direction: Direction, step: int) -> Point | None:
+    def next_point_speed(
+        self, pos: Point, direction: Direction, step: int
+    ) -> Point | None:
         """
         Compute the next point for a SPEED move in `direction` with `step` size.
         Returns None if any step would go out of bounds.
@@ -296,7 +296,7 @@ class BotContext:
         if step not in (1, 2):
             raise ValueError("Step size must be 1 or 2.")
 
-        x,y = pos.x, pos.y
+        x, y = pos.x, pos.y
         if direction == Direction.NORTH:
             y -= step
         elif direction == Direction.SOUTH:
@@ -373,12 +373,11 @@ class BotContext:
         # if any(a.location == pos for a in self.api.visible_algae()):
         #     print(f"Blocked by algae at {pos}")
         #     return True
-        
+
         if any(s.location == pos for s in self.api.energypads()):
             print(f"Blocked by energy pad at pos: {pos}")
             return True
         return False
-
 
     def check_blocked_direction(self, direction: Direction) -> bool:
         """
@@ -512,8 +511,8 @@ class BotContext:
         return None
 
     def move_target_speed(
-    self, bot: Point, target: Point
-) -> tuple[Direction | None, int]:
+        self, bot: Point, target: Point
+    ) -> tuple[Direction | None, int]:
         if Ability.SPEED_BOOST.value not in self.bot.abilities:
             raise ValueError("Bot does not have SPEED ability equipped.")
 

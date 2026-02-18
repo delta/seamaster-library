@@ -58,7 +58,7 @@ class Forager(BotController):
         print(f"my status is {self.status}")
         if self.target_bank_id:
             print(f"target bank id is {self.target_bank_id}")
-            
+
         if self.status == "charging":
             pads = ctx.api.energypads()
             pad = next((p for p in pads if p.id == self.target_pad_id), None)
@@ -99,7 +99,6 @@ class Forager(BotController):
                 self.target_bank_id = None
                 return None
 
-
         if ctx.get_energy() < 5:
             pad = ctx.get_nearest_energy_pad()
             self.status = "charging"
@@ -113,20 +112,20 @@ class Forager(BotController):
             return None
 
         visible = ctx.sense_algae_in_radius(loc)
-        if visible and visible[0].is_poison==AlgaeType.FALSE.value:
+        if visible and visible[0].is_poison == AlgaeType.FALSE.value:
             return harvest(None)
-            
-        visible = ctx.sense_algae_in_radius(loc,1)
+
+        visible = ctx.sense_algae_in_radius(loc, 1)
         if visible:
             for a in visible:
-                if a.is_poison ==AlgaeType.FALSE.value:
+                if a.is_poison == AlgaeType.FALSE.value:
                     target = a.location
                     d = direction_from_point(loc, target)
                     return harvest(d)
 
         for r in range(2, 11):
             visible = ctx.sense_algae_in_radius(loc, radius=r)
-            non_poisonous = [a for a in visible if a.is_poison==AlgaeType.FALSE.value]
+            non_poisonous = [a for a in visible if a.is_poison == AlgaeType.FALSE.value]
             if non_poisonous:
                 target = non_poisonous[0].location
                 d = ctx.move_target(loc, target)

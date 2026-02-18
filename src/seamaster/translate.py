@@ -28,7 +28,9 @@ def harvest(direction: Direction | None):
     """ "
     Creates a harvest action in the specified direction.
     """
-    return Action(Ability.HARVEST, {"direction": direction.value if direction else None})
+    return Action(
+        Ability.HARVEST, {"direction": direction.value if direction else None}
+    )
 
 
 def self_destruct():
@@ -59,8 +61,11 @@ def poison(direction: Direction | None):
     """
     return Action(Ability.POISON, {"direction": direction.value if direction else None})
 
+
 def deposit(direction: Direction | None):
     """
     Creates a deposit action in the specified direction.
     """
-    return Action(Ability.DEPOSIT, {"direction": direction.value if direction else None})
+    return Action(
+        Ability.DEPOSIT, {"direction": direction.value if direction else None}
+    )
