@@ -70,7 +70,7 @@ def direction_from_point(p1: Point, p2: Point) -> Direction:
     return Direction.NORTH if dy > 0 else Direction.SOUTH
 
 
-def get_optimal_next_hops (start: Point, end: Point) -> list[Direction]:
+def get_optimal_next_hops(start: Point, end: Point) -> list[Direction]:
     src = f"{start.x},{start.y}"
     trg = f"{end.x},{end.y}"
     priority = GUIDE.get(src, {}).get(trg)
@@ -83,9 +83,8 @@ def get_optimal_next_hops (start: Point, end: Point) -> list[Direction]:
     return directions
 
 
-def get_shortest_distance_between_points (start: Point, end: Point) -> int:
+def get_shortest_distance_between_points(start: Point, end: Point) -> int:
     src = f"{start.x},{start.y}"
     trg = f"{end.x},{end.y}"
     distance = DIST.get(src, {}).get(trg)
     return distance
-

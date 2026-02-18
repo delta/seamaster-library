@@ -13,7 +13,6 @@ from seamaster.models.energy_pad import EnergyPad
 from seamaster.models.point import Point
 from seamaster.models.scrap import Scrap
 from seamaster.utils import manhattan_distance
-from seamaster.shortest_distances import GUIDE, DIST
 from seamaster.utils import get_optimal_next_hops, get_shortest_distance_between_points
 
 
@@ -565,7 +564,6 @@ class BotContext:
         one_step_fallback = None
 
         for direction in priority:
-
             # --- Check 1-step ---
             p1 = self.next_point_speed(bot, direction, 1)
             if p1 is None or self.check_blocked_point(p1):
