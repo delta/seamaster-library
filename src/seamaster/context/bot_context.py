@@ -12,7 +12,12 @@ from seamaster.models.energy_pad import EnergyPad
 from seamaster.models.point import Point
 from seamaster.models.scrap import Scrap
 from seamaster.utils import manhattan_distance
+<<<<<<< Updated upstream
 from seamaster.shortest_distances import GUIDE, DIST
+=======
+from seamaster.shortest_distances import GUIDE
+from collections import deque
+>>>>>>> Stashed changes
 
 
 class BotContext:
@@ -172,8 +177,58 @@ class BotContext:
             for b in self.api.get_my_bots()
             if b.id != self.bot.id and manhattan_distance(b.location, bot) <= radius
         ]
+       
+    def bfs_shortest_path(self,n, m, startx, starty, endx, endy):
+        # Directions: right, left, down, up
+        directions = [(0,1), (0,-1), (1,0), (-1,0)]
+        
+        # Visited matrix
+        visited = [[False for _ in range(m)] for _ in range(n)]
+        
+        # Parent matrix to reconstruct path
+        parent = [[None for _ in range(m)] for _ in range(n)]
+        
+        queue = deque()
+        queue.append((startx, starty))
+        visited[startx][starty] = True
+        
+        while queue:
+            x, y = queue.popleft()
+            
+            # If we reached destination
+            if (x, y) == (endx, endy):
+                break
+            
+            for dx, dy in directions:
+                nx, ny = x + dx, y + dy
+                
+                # Check bounds
+                if 0 <= nx < n and 0 <= ny < m:
+                    if not visited[nx][ny]:
+                        visited[nx][ny] = True
+                        parent[nx][ny] = (x, y)
+                        queue.append((nx, ny))
+        
+        # If destination not reached
+        if not visited[endx][endy]:
+            return []  # No path
+        
+        # Reconstruct path
+        path = []
+        cur = (endx, endy)
+        
+        while cur:
+            path.append(cur)
+            cur = parent[cur[0]][cur[1]]
+        
+        path.reverse()
+        return path
 
+<<<<<<< Updated upstream
     def sense_unknown_algae(self, bot: Point) -> list[tuple[int, Algae]]:
+=======
+    def sense_algae_in_radius(self, bot: Point, radius: int = 0) -> list[Algae]:
+>>>>>>> Stashed changes
         """
         Detect algae within a Manhattan radius of a point.
 
@@ -184,6 +239,7 @@ class BotContext:
         Returns:
             list[Algae]: Algae within radius.
         """
+<<<<<<< Updated upstream
         src = f"{bot.x},{bot.y}"
         result = []
 
@@ -196,6 +252,14 @@ class BotContext:
 
         return sorted(result, key=lambda x: x[0])
 
+=======
+        for a in self.api.visible_algae():
+            print(a.location)
+        return [a for a in self.api.visible_algae()
+            if self.bfs_shortest_path(20, 20, bot.x, bot.y, a.location.x, a.location.y) == radius
+        ]
+        
+>>>>>>> Stashed changes
     def sense_scraps_in_radius(self, bot: Point, radius: int = 0) -> list[Scrap]:
         """
         Detect scraps within a Manhattan radius of a point.
