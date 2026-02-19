@@ -10,6 +10,7 @@ from seamaster.models.energy_pad import EnergyPad
 from seamaster.models.player_view import PlayerView
 from seamaster.models.bot import Bot
 from seamaster.models.point import Point
+from seamaster.models.scrap import Scrap
 
 
 class GameAPI:
@@ -55,7 +56,7 @@ class GameAPI:
         """
         return self.view.visible_entities.enemies
 
-    def visible_scraps(self):
+    def visible_scraps(self) -> list[Scrap]:
         """
         Returns a list of visible scrap entities.
         returnType: list[Scrap]
