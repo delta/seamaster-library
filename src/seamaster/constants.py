@@ -66,9 +66,9 @@ class BotStatus(str, Enum):
 
 ABILITY_COSTS = {
     "HARVEST": {"traversal": 0, "action": 1},
-    "SCOUT": {"traversal": 1.5, "action": 0},
+    "SCOUT": {"traversal": 3, "action": 0},
     "SELF_DESTRUCT": {"traversal": 0.5, "action": 0},
-    "SPEED_BOOST": {"traversal": 1, "action": 0},
+    "SPEED_BOOST": {"traversal": 0.5, "action": 1},
     "SHIELD": {"traversal": 0.25, "action": 0},
     "POISON": {"traversal": 0.5, "action": 2},
     "LOCKPICK": {"traversal": 1.5, "action": 0},
@@ -77,11 +77,11 @@ ABILITY_COSTS = {
 }
 
 SCRAP_COSTS = {
-    "HARVEST": 10,
-    "SCOUT": 10,
-    "SELF_DESTRUCT": 5,
-    "SPEED_BOOST": 10,
-    "SHIELD": 5,
-    "POISON": 5,
-    "LOCKPICK": 5,
+    "HARVEST": 8,
+    "SCOUT": 8,
+    "SELF_DESTRUCT": 6,
+    "SPEED_BOOST": 8,
+    "SHIELD": 7,
+    "POISON": 7,
+    "LOCKPICK": 6,
 }

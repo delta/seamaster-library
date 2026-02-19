@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "seamaster"
-version = "0.0.4"
+version = "0.0.5"
 authors = [
   { name = "Allen", email = "108123012@nitt.edu" },
   { name = "Niharika", email = "108124080@nitt.edu" },
