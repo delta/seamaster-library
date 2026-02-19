@@ -1,5 +1,5 @@
 from seamaster.botbase import BotController
-from seamaster.translate import harvest, move, deposit
+from seamaster.translate import harvest, move
 from seamaster.constants import Ability, BotStatus
 from seamaster.utils import get_direction_in_one_radius, manhattan_distance
 from seamaster.api import GameAPI
@@ -21,7 +21,7 @@ class Forager(BotController):
     - If energy drops below a threshold, it moves near an energy pad and recharges.
     """
 
-    ABILITIES = [Ability.HARVEST, Ability.SCOUT, Ability.DEPOSIT]
+    ABILITIES = [Ability.HARVEST, Ability.DEPOSIT]
 
     def __init__(self, ctx, args=None):
         """
@@ -58,6 +58,8 @@ class Forager(BotController):
         ctx = self.ctx
         loc = ctx.get_location()
 
+        print("hello from forager")
+
         if self.status == BotStatus.CHARGING:
             if ctx.get_energy() > self.energy_threshold:
                 self.status = BotStatus.ACTIVE
@@ -86,17 +88,18 @@ class Forager(BotController):
             bank = next((b for b in banks if b.id == self.target_bank_id), None)
 
             if bank:
-                dist = manhattan_distance(loc, bank.location)
-
+                # dist = manhattan_distance(loc, bank.location)
+                dist = ctx.min_adjacent_distance(bank,loc)
                 if dist > 1:
                     d = ctx.move_target(loc, bank.location)
                     if d:
                         return move(d)
-
-                if not bank.deposit_occuring:
-                    return deposit(None)
-                if bank.deposit_occuring:
-                    return None
+                else:
+                    # if not bank.deposit_occuring:
+                    #     return deposit(None)
+                    # if bank.deposit_occuring:
+                    #     return None
+                    pass
 
         if ctx.get_energy() <= self.energy_threshold:
             pad = ctx.get_nearest_energy_pad()

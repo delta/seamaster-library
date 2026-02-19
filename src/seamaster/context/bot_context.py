@@ -465,6 +465,20 @@ class BotContext:
         # Sort banks by min adjacent distance
         my_banks.sort(key=min_adjacent_distance)
         return my_banks
+    
+    def min_adjacent_distance(self,bank: Bank,bot:Point) -> int:
+            """
+            for the 4 directions in a bank it returns the shortest distance from you
+            """
+            distances = []
+            dirs = [(1, 0), (0, 1), (-1, 0), (0, -1)]
+            for dx, dy in dirs:
+                adj = Point(bank.location.x + dx, bank.location.y + dy)
+                if not self.check_blocked_point(adj):
+                    dist = get_shortest_distance_between_points(bot, adj)
+                    if dist is not None:
+                        distances.append(dist)
+            return min(distances)
 
     def get_opponent_banks(self, bot: Point) -> list[Bank] | None:
         """

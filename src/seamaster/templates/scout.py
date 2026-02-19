@@ -22,6 +22,8 @@ class Scout(BotController):
         ctx = self.ctx
         loc = ctx.get_location()
 
+        print("hello from forager")
+
         unknown = ctx.sense_unknown_algae(loc)
 
         if unknown:
