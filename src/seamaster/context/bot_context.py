@@ -13,7 +13,8 @@ from seamaster.models.enemy_bot import EnemyBot
 from seamaster.models.energy_pad import EnergyPad
 from seamaster.models.point import Point
 from seamaster.models.scrap import Scrap
-from seamaster.utils import get_shortest_distance_between_points,get_optimal_next_hops
+from seamaster.utils import get_shortest_distance_between_points, get_optimal_next_hops
+
 
 class BotContext:
     """
@@ -468,20 +469,35 @@ class BotContext:
         # Sort banks by min adjacent distance
         my_banks.sort(key=min_adjacent_distance)
         return my_banks
-    
-    def min_adjacent_distance(self,bank: Bank,bot:Point) -> int:
-            """
-            for the 4 directions in a bank it returns the shortest distance from you
-            """
-            distances = []
-            dirs = [(1, 0), (0, 1), (-1, 0), (0, -1)]
-            for dx, dy in dirs:
-                adj = Point(bank.location.x + dx, bank.location.y + dy)
-                if not self.check_blocked_point(adj):
-                    dist = get_shortest_distance_between_points(bot, adj)
-                    if dist is not None:
-                        distances.append(dist)
-            return min(distances)
+
+    def min_adjacent_distance_bank(
+        self, bank: Bank, bot: Point
+    ) -> tuple[float, Point | None]:
+        """
+        For the 4 adjacent cells of a bank, return:
+        (minimum distance from bot, corresponding adjacent point)
+
+        Returns (inf, None) if no reachable adjacent cell exists.
+        """
+
+        min_dist = float("inf")
+        min_point: Point | None = None
+
+        dirs = [(1, 0), (0, 1), (-1, 0), (0, -1)]
+
+        for dx, dy in dirs:
+            adj = Point(bank.location.x + dx, bank.location.y + dy)
+
+            if self.check_blocked_point(adj):
+                continue
+
+            dist = get_shortest_distance_between_points(bot, adj)
+
+            if dist is not None and dist < min_dist:
+                min_dist = dist
+                min_point = adj
+
+        return min_dist, min_point
 
     def get_opponent_banks(self, bot: Point) -> list[Bank] | None:
         """
