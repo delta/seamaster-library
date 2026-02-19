@@ -13,9 +13,7 @@ from seamaster.models.enemy_bot import EnemyBot
 from seamaster.models.energy_pad import EnergyPad
 from seamaster.models.point import Point
 from seamaster.models.scrap import Scrap
-from seamaster.utils import get_shortest_distance_between_points
-from seamaster.utils import get_optimal_next_hops
-
+from seamaster.utils import get_shortest_distance_between_points,get_optimal_next_hops
 
 class BotContext:
     """
