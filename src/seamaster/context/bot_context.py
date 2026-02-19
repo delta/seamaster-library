@@ -4,15 +4,17 @@ BotContext module provides a read-only interface for bot strategies
 to interact with the game engine state safely.
 """
 
+from seamaster.api.game_api import GameAPI
 from seamaster.constants import Direction, Ability, SCRAP_COSTS
 from seamaster.models.algae import Algae
 from seamaster.models.bank import Bank
 from seamaster.models.bot import Bot
+from seamaster.models.enemy_bot import EnemyBot
 from seamaster.models.energy_pad import EnergyPad
 from seamaster.models.point import Point
 from seamaster.models.scrap import Scrap
-from seamaster.utils import manhattan_distance
-from seamaster.utils import get_optimal_next_hops, get_shortest_distance_between_points
+from seamaster.utils import get_shortest_distance_between_points
+from seamaster.utils import get_optimal_next_hops
 
 
 class BotContext:
@@ -29,7 +31,7 @@ class BotContext:
     A BotContext instance is created once per bot per tick.
     """
 
-    def __init__(self, api, bot):  # TODO: Fix all the errors after adding type
+    def __init__(self, api: GameAPI, bot: Bot):
         """
         Initialize the context for a single bot.
 
@@ -51,7 +53,7 @@ class BotContext:
         """
         return self.bot.id
 
-    def get_energy(self) -> int:
+    def get_energy(self) -> float:
         """
         Get the current energy level of the bot.
 
@@ -69,7 +71,7 @@ class BotContext:
         """
         return self.bot.location
 
-    def get_abilities(self) -> list[str]:
+    def get_abilities(self) -> list[Ability]:
         """
         Get the abilities currently equipped by the bot.
 
@@ -87,7 +89,7 @@ class BotContext:
         """
         return self.bot.algae_held
 
-    def get_type(self) -> list[str]:
+    def get_type(self) -> list[Ability]:
         """
         Get the list of abilities currently equipped by the bot.
 
@@ -96,7 +98,7 @@ class BotContext:
         """
         return self.bot.abilities
 
-    def spawn_cost(self, abilities: list[str]) -> int:
+    def spawn_cost(self, abilities: list[Ability]) -> int:
         """
         Calculate the resource cost of spawning or upgrading abilities.
 
@@ -130,7 +132,7 @@ class BotContext:
         """
         return self.api.visible_enemies()
 
-    def sense_enemies_in_radius(self, bot: Point, radius: int = 1) -> list[Bot]:
+    def sense_enemies_in_radius(self, bot: Point, radius: int = 1) -> list[EnemyBot]:
         """
         Detect enemies within a Manhattan radius of a given point.
 
@@ -144,7 +146,7 @@ class BotContext:
         return [
             b
             for b in self.api.visible_enemies()
-            if manhattan_distance(b.location, bot) <= radius
+            if get_shortest_distance_between_points(b.location, bot) <= radius
         ]
 
     def sense_own_bots(self) -> list[Bot]:
@@ -170,7 +172,8 @@ class BotContext:
         return [
             b
             for b in self.api.get_my_bots()
-            if b.id != self.bot.id and manhattan_distance(b.location, bot) <= radius
+            if b.id != self.bot.id
+            and get_shortest_distance_between_points(b.location, bot) <= radius
         ]
 
     def sense_unknown_algae(self, bot: Point) -> list[tuple[int, Algae]]:
@@ -221,8 +224,8 @@ class BotContext:
         """
         return [
             s
-            for s in self.api.sense_bot_scraps()
-            if manhattan_distance(s.location, bot) == radius
+            for s in self.api.visible_scraps()
+            if get_shortest_distance_between_points(s.location, bot) == radius
         ]
 
     def sense_objects(self) -> dict[str, list]:
@@ -233,7 +236,7 @@ class BotContext:
             dict: Mapping of object categories to entity lists.
         """
         return {
-            "scraps": self.api.sense_bot_scraps(),
+            "scraps": self.api.visible_scraps(),
             "banks": self.api.banks(),
             "energypads": self.api.energypads(),
         }
@@ -259,7 +262,9 @@ class BotContext:
             list[Wall]: Walls within radius.
         """
         return [
-            w for w in self.api.visible_walls() if manhattan_distance(w, bot) <= radius
+            w
+            for w in self.api.visible_walls()
+            if get_shortest_distance_between_points(w, bot) <= radius
         ]
 
     # ============= REACTING TO GAME STATE =============
@@ -274,7 +279,7 @@ class BotContext:
         pos = self.bot.location
         return sorted(
             (b for b in self.api.banks() if b.deposit_occuring),
-            key=lambda b: manhattan_distance(b.location, pos),
+            key=lambda b: get_shortest_distance_between_points(b.location, pos),
         )
 
     # ==================== PATHING ====================
@@ -392,7 +397,7 @@ class BotContext:
         """
         return Ability.SHIELD.value in self.bot.abilities
 
-    def can_spawn(self, abilities: list[str]) -> bool:
+    def can_spawn(self, abilities: list[Ability]) -> bool:
         """
         Check whether spawning a bot with given abilities is possible.
 
@@ -418,7 +423,7 @@ class BotContext:
         pos = self.bot.location
         return min(
             self.api.banks(),
-            key=lambda b: manhattan_distance(b.location, pos),
+            key=lambda b: get_shortest_distance_between_points(b.location, pos),
         )
 
     def get_energy_pads(self) -> list[EnergyPad]:
@@ -491,7 +496,8 @@ class BotContext:
         dist2 = get_shortest_distance_between_points(bot, opp_banks[1].location)
 
         if dist1 > dist2:
-            return opp_banks.reverse()
+            opp_banks.reverse()
+            return opp_banks
 
         return opp_banks
 
@@ -502,8 +508,8 @@ class BotContext:
         """
         pos = self.bot.location
         return min(
-            self.api.sense_bot_scraps(),
-            key=lambda s: manhattan_distance(s.location, pos),
+            self.api.visible_scraps(),
+            key=lambda s: get_shortest_distance_between_points(s.location, pos),
         )
 
     def get_nearest_algae(self) -> Algae:
@@ -514,10 +520,10 @@ class BotContext:
         pos = self.bot.location
         return min(
             self.api.visible_algae(),
-            key=lambda a: manhattan_distance(a.location, pos),
+            key=lambda a: get_shortest_distance_between_points(a.location, pos),
         )
 
-    def get_nearest_enemy(self) -> Bot:
+    def get_nearest_enemy(self) -> EnemyBot:
         """
         Return:
             Bot: Nearest enemy.
@@ -525,7 +531,7 @@ class BotContext:
         pos = self.bot.location
         return min(
             self.api.visible_enemies(),
-            key=lambda e: manhattan_distance(e.location, pos),
+            key=lambda e: get_shortest_distance_between_points(e.location, pos),
         )
 
     # ==================== COLLISION AVOIDANCE ====================
