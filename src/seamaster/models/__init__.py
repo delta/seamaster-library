@@ -11,10 +11,12 @@ from .point import Point
 from .scrap import Scrap
 from .visible_entities import VisibleEntities
 from .permanent_entities import PermanentEntities
+from .enemy_bot import EnemyBot
 
 
 __all__ = [
     "Algae",
+    "EnemyBot",
     "Bank",
     "Bot",
     "EnergyPad",
