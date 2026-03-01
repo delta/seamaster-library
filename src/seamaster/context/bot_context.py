@@ -131,22 +131,27 @@ class BotContext:
         """
         return self.api.visible_enemies()
 
-    def sense_enemies_in_radius(self, bot: Point, radius: int = 1) -> list[EnemyBot]:
-        """
-        Detect enemies within a Manhattan radius of a given point.
-
-        Args:
-            bot (Point): Center position.
-            radius (int): Manhattan distance radius.
-
-        Returns:
-            list[EnemyBot]: Enemies within radius.
-        """
-        return [
-            b
-            for b in self.api.visible_enemies()
-            if get_shortest_distance_between_points(b.location, bot) <= radius
-        ]
+    def sense_enemies_in_radius(self, bot: Point, radius: int = 1) -> list[tuple[int, EnemyBot]]:
+        result = []
+        
+        for e in self.api.visible_enemies():
+            d = get_shortest_distance_between_points(bot, e.location)
+            if d is not None and d <= radius:
+                result.append((d, e))
+                
+        sorted_result = sorted(result, key=lambda x: x[0])
+        return sorted_result
+    
+    def sense_all_enemies(self,bot:Point)-> list[tuple[int, EnemyBot]]:
+        result = []
+        
+        for e in self.api.visible_enemies():
+            d = get_shortest_distance_between_points(bot, e.location)
+            if d is not None:
+                result.append((d, e))
+                
+        sorted_result = sorted(result, key=lambda x: x[0])
+        return sorted_result
 
     def sense_own_bots(self) -> list[Bot]:
         """

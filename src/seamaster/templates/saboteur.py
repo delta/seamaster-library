@@ -2,114 +2,68 @@ from seamaster.botbase import BotController
 from seamaster.translate import move, self_destruct
 from seamaster.constants import Ability, Direction
 from seamaster.api import GameAPI
-from seamaster.utils import manhattan_distance
+from seamaster.utils import manhattan_distance, get_direction_in_one_radius
 
 
 class Saboteur(BotController):
-    """
-    Saboteur is an aggressive combat bot designed to eliminate enemy bots
-    via self-destruction.
-
-    Interaction model:
-    - Self-destruction is triggered when an enemy bot is within a Manhattan
-      distance of 1.
-    - Energy pad interaction is only possible when the Saboteur is at a
-      Manhattan distance of exactly 1 from the pad.
-    - After an interaction action, the engine resolves the interaction and
-      moves the bot onto the object tile in the next tick.
-
-    High-level behavior:
-    - Actively searches for nearby enemies.
-    - Moves toward the closest detected enemy.
-    - Self-destructs immediately when an enemy is within blast radius.
-    - Retreats to recharge if energy drops below a threshold.
-    """
 
     ABILITIES = [Ability.SELF_DESTRUCT]
 
-    ENERGY_THRESHOLD = 10
-
     def __init__(self, ctx):
-        """
-        Initializes the Saboteur bot.
-
-        State variables:
-        - target:
-            Location of the enemy bot currently being pursued
-        - status:
-            * "active"   → enemy hunting and pursuit
-            * "charging" → recharging energy at an energy pad
-        - target_pad_id:
-            ID of the energy pad currently being targeted for recharge
-        """
-        super().__init__(ctx)
-        self.target = None
-        self.status = "active"
-        self.target_pad_id = None
+        try:
+            super().__init__(ctx)
+        except Exception as e:
+            print(f"Error initializing Saboteur: {e}")
 
     def act(self):
-        """
-        Main decision loop executed every tick.
-
-        Priority order:
-        1. Resolve charging behavior if currently recharging
-        2. Initiate charging if energy falls below threshold
-        3. Self-destruct if an enemy is within blast radius
-        4. Acquire and pursue the nearest enemy
-        5. Default movement if no enemy is found
-        """
-        ctx = self.ctx
-        loc = ctx.get_location()
-
-        if self.status == "charging":
-            pads = ctx.api.energypads()
-            pad = next((p for p in pads if p.id == self.target_pad_id), None)
-
-            if pad is None or pad.ticksleft == 0:
-                self.status = "active"
-                self.target_pad_id = None
-                return None
-
-            if manhattan_distance(loc, pad.location) == 1:
-                return None
-
-            d = ctx.move_target(loc, pad.location)
-            if d:
-                return move(d)
+        # 1. Safely get context and location
+        try:
+            ctx = self.ctx
+            loc = ctx.get_location()
+        except Exception as e:
+            print(f"Error getting location in Saboteur: {e}")
             return None
 
-        if ctx.get_energy() < self.ENERGY_THRESHOLD:
-            pad = ctx.get_nearest_energy_pad()
-            self.status = "charging"
-            self.target_pad_id = pad.id
-            self.target = None
-            return None
+        # 2. Safely sense enemies
+        try:
+            enemies = ctx.sense_all_enemies(loc)
+            print("All Enemies")
+            if enemies:
+                for d, enemy in enemies:
+                    print(f"Enemy ID: {enemy.id}, Location: {enemy.location}, Distance: {d}")
+        except Exception as e:
+            print(f"Error sensing enemies: {e}")
+            enemies = [] # Default to empty so the rest of the code doesn't break
 
-        close = ctx.sense_enemies_in_radius(loc, radius=1)
-        if close:
-            return self_destruct()
+        if enemies:
+            # 3. Safely check blast radius and self-destruct
+            try:
+                closest_enemy_loc = enemies[0][1].location
+                if manhattan_distance(loc, closest_enemy_loc) <= 1:
+                    print("Enemy within blast radius!!!!!!! Self-destructing.")
+                    return self_destruct()
+            except Exception as e:
+                print(f"Error during self-destruct sequence: {e}")
+            
+            # 4. Safely calculate movement
+            try:
+                closest_enemy_loc = enemies[0][1].location
+                d = ctx.move_target(loc, closest_enemy_loc)
+                if d:
+                    print(f"Moving towards enemy at {closest_enemy_loc} in direction {d}")
+                    return move(d)
+            except Exception as e:
+                print(f"Error calculating move target: {e}")
 
-        if self.target is None:
-            for r in range(2, 11):
-                enemies = ctx.sense_enemies_in_radius(loc, radius=r)
-                if enemies:
-                    self.target = enemies[0].location
-                    break
-
-        if self.target:
-            d = ctx.move_target(loc, self.target)
-            if d:
-                return move(d)
-            self.target = None
-
-        return move(Direction.NORTH)
+        return None
 
     @classmethod
     def can_spawn(cls, api: GameAPI) -> bool:
         """
         Determines whether the Saboteur can be spawned given current resources.
-
-        Returns:
-            bool: True if sufficient scraps are available to spawn the bot
         """
-        return api.can_spawn(cls.ABILITIES)
+        try:
+            return api.can_spawn(cls.ABILITIES)
+        except Exception as e:
+            print(f"Error checking spawn conditions for Saboteur: {e}")
+            return False

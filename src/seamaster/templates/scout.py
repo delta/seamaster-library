@@ -12,7 +12,7 @@ class Scout(BotController):
     Dies if it reaches poisonous algae.
     """
 
-    ABILITIES = [Ability.SCOUT, Ability.SELF_DESTRUCT]
+    ABILITIES = [Ability.SCOUT]
 
     def __init__(self, ctx):
         super().__init__(ctx)
