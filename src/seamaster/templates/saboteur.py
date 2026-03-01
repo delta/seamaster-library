@@ -6,6 +6,12 @@ from seamaster.utils import manhattan_distance, get_direction_in_one_radius
 
 
 class Saboteur(BotController):
+    """
+    The Saboteur scans for the closest enemy and moves towards them.
+    Once it reaches an adjacent tile with an enemy bot(Manhattan distance <= 1), 
+    it triggers its SELF_DESTRUCT ability to deal damage.
+    """
+
 
     ABILITIES = [Ability.SELF_DESTRUCT]
 
@@ -16,7 +22,6 @@ class Saboteur(BotController):
             print(f"Error initializing Saboteur: {e}")
 
     def act(self):
-        # 1. Safely get context and location
         try:
             ctx = self.ctx
             loc = ctx.get_location()
@@ -24,33 +29,24 @@ class Saboteur(BotController):
             print(f"Error getting location in Saboteur: {e}")
             return None
 
-        # 2. Safely sense enemies
         try:
             enemies = ctx.sense_all_enemies(loc)
-            print("All Enemies")
-            if enemies:
-                for d, enemy in enemies:
-                    print(f"Enemy ID: {enemy.id}, Location: {enemy.location}, Distance: {d}")
         except Exception as e:
             print(f"Error sensing enemies: {e}")
-            enemies = [] # Default to empty so the rest of the code doesn't break
+            enemies = []
 
         if enemies:
-            # 3. Safely check blast radius and self-destruct
             try:
                 closest_enemy_loc = enemies[0][1].location
                 if manhattan_distance(loc, closest_enemy_loc) <= 1:
-                    print("Enemy within blast radius!!!!!!! Self-destructing.")
                     return self_destruct()
             except Exception as e:
                 print(f"Error during self-destruct sequence: {e}")
             
-            # 4. Safely calculate movement
             try:
                 closest_enemy_loc = enemies[0][1].location
                 d = ctx.move_target(loc, closest_enemy_loc)
                 if d:
-                    print(f"Moving towards enemy at {closest_enemy_loc} in direction {d}")
                     return move(d)
             except Exception as e:
                 print(f"Error calculating move target: {e}")
