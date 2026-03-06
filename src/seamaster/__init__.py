@@ -40,6 +40,7 @@ from seamaster.constants import (
     BotStatus,
     BotType,
     SCRAP_COSTS,
+    lock_pick_ticks,
 )
 
 
@@ -88,6 +89,7 @@ __all__ = [
     "Ability",
     "Direction",
     "ABILITY_COSTS",
+    "lock_pick_ticks",
     "move",
     "move_speed",
     "harvest",

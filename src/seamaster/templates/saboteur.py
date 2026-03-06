@@ -1,17 +1,16 @@
 from seamaster.botbase import BotController
 from seamaster.translate import move, self_destruct
-from seamaster.constants import Ability, Direction
+from seamaster.constants import Ability
 from seamaster.api import GameAPI
-from seamaster.utils import manhattan_distance, get_direction_in_one_radius
+from seamaster.utils import manhattan_distance
 
 
 class Saboteur(BotController):
     """
     The Saboteur scans for the closest enemy and moves towards them.
-    Once it reaches an adjacent tile with an enemy bot(Manhattan distance <= 1), 
+    Once it reaches an adjacent tile with an enemy bot(Manhattan distance <= 1),
     it triggers its SELF_DESTRUCT ability to deal damage.
     """
-
 
     ABILITIES = [Ability.SELF_DESTRUCT]
 
@@ -42,7 +41,7 @@ class Saboteur(BotController):
                     return self_destruct()
             except Exception as e:
                 print(f"Error during self-destruct sequence: {e}")
-            
+
             try:
                 closest_enemy_loc = enemies[0][1].location
                 d = ctx.move_target(loc, closest_enemy_loc)

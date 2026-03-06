@@ -2,7 +2,6 @@
 Provides functions to create various game actions.
 """
 
-from seamaster.models.point import Point
 from seamaster.models.action import Action
 from seamaster.constants import Direction, Ability
 from seamaster.utils import BotIDAllocator
@@ -48,11 +47,13 @@ def spawn(Ability: list[str], location: int):
     return bot_id, {"Ability": Ability, "location": {"x": location, "y": 0}}
 
 
-def lockpick(location: Point):
+def lockpick(direction: Direction | None):
     """
     Creates a lockpick action.
     """
-    return Action(Ability.LOCKPICK, {"location": location})
+    return Action(
+        Ability.LOCKPICK, {"direction": direction.value if direction else None}
+    )
 
 
 def poison(direction: Direction | None):

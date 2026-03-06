@@ -131,25 +131,27 @@ class BotContext:
         """
         return self.api.visible_enemies()
 
-    def sense_enemies_in_radius(self, bot: Point, radius: int = 1) -> list[tuple[int, EnemyBot]]:
+    def sense_enemies_in_radius(
+        self, bot: Point, radius: int = 1
+    ) -> list[tuple[int, EnemyBot]]:
         result = []
-        
+
         for e in self.api.visible_enemies():
             d = get_shortest_distance_between_points(bot, e.location)
             if d is not None and d <= radius:
                 result.append((d, e))
-                
+
         sorted_result = sorted(result, key=lambda x: x[0])
         return sorted_result
-    
-    def sense_all_enemies(self,bot:Point)-> list[tuple[int, EnemyBot]]:
+
+    def sense_all_enemies(self, bot: Point) -> list[tuple[int, EnemyBot]]:
         result = []
-        
+
         for e in self.api.visible_enemies():
             d = get_shortest_distance_between_points(bot, e.location)
             if d is not None:
                 result.append((d, e))
-                
+
         sorted_result = sorted(result, key=lambda x: x[0])
         return sorted_result
 
@@ -161,6 +163,15 @@ class BotContext:
             list[Bot]: Nearby friendly bots.
         """
         return [b for b in self.api.get_my_bots() if b.id != self.bot.id]
+
+    def get_my_bot_ids(self) -> list[int]:
+        """
+        Get the IDs of all own bots excluding this bot.
+
+        Returns:
+            list[int]: IDs of friendly bots.
+        """
+        return [b.id for b in self.api.get_my_bots() if b.id != self.bot.id]
 
     def sense_own_bots_in_radius(self, bot: Point, radius: int = 1) -> list[Bot]:
         """
@@ -271,9 +282,20 @@ class BotContext:
             if get_shortest_distance_between_points(w, bot) <= radius
         ]
 
-    # ============= REACTING TO GAME STATE =============
+    def get_shortest_distance_in_four_directions(
+        self, bot: Point, target: Point
+    ) -> int:
+        dirs = [(1, 0), (0, 1), (-1, 0), (0, -1)]
+        not_blocked = []
+        for dx, dy in dirs:
+            adj = Point(target.x + dx, target.y + dy)
+            if not self.check_blocked_point(adj):
+                dist = get_shortest_distance_between_points(bot, adj)
+                if dist is not None:
+                    not_blocked.append(dist)
+        return min(not_blocked) if not_blocked else 100_000_000
 
-    def get_depositing_banks_sorted(self):
+    def get_depositing_banks_sorted(self) -> list[Bank] | None:
         """
         Get depositing banks sorted by nearest distance from the bot.
 
@@ -283,8 +305,24 @@ class BotContext:
         pos = self.bot.location
         return sorted(
             (b for b in self.api.banks() if b.deposit_occuring),
-            key=lambda b: get_shortest_distance_between_points(b.location, pos),
+            key=lambda b: self.get_shortest_distance_in_four_directions(
+                b.location, pos
+            ),
         )
+
+    def get_opponent_banks(self) -> list[Bank] | None:
+        """
+        Returns a list of opponents banks sorted in ascending order of distance
+        """
+        bot = self.bot.location
+        ans = sorted(
+            (b for b in self.api.banks() if not b.is_bank_owner),
+            key=lambda b: self.get_shortest_distance_in_four_directions(
+                b.location, bot
+            ),
+        )
+        print(f"opponent banks!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!: {ans}")
+        return ans
 
     # ==================== PATHING ====================
 
@@ -503,22 +541,6 @@ class BotContext:
                 min_point = adj
 
         return min_dist, min_point
-
-    def get_opponent_banks(self, bot: Point) -> list[Bank] | None:
-        """
-        Returns a list of opponents banks sorted in ascending order of distance
-        """
-        opp_banks = [b for b in self.api.banks() if not b.is_bank_owner]
-        if not opp_banks:
-            return None
-        dist1 = get_shortest_distance_between_points(bot, opp_banks[0].location)
-        dist2 = get_shortest_distance_between_points(bot, opp_banks[1].location)
-
-        if dist1 > dist2:
-            opp_banks.reverse()
-            return opp_banks
-
-        return opp_banks
 
     def get_nearest_scrap(self) -> Scrap:
         """

@@ -4,6 +4,8 @@ constants used in the Seawars game.
 
 from enum import Enum
 
+lock_pick_ticks = 20
+
 
 class Ability(str, Enum):
     """
@@ -62,6 +64,7 @@ class BotStatus(str, Enum):
     ACTIVE = "ACTIVE"
     DEPOSITING = "DEPOSITING"
     CHARGING = "CHARGING"
+    LOCKPICKING = "LOCKPICKING"
 
 
 ABILITY_COSTS = {
@@ -71,7 +74,7 @@ ABILITY_COSTS = {
     "SPEED_BOOST": {"traversal": 0.5, "action": 1},
     "SHIELD": {"traversal": 0.25, "action": 0},
     "POISON": {"traversal": 0.5, "action": 2},
-    "LOCKPICK": {"traversal": 1.5, "action": 0},
+    "LOCKPICK": {"traversal": 1, "action": 0},
     "DEPOSIT": {"traversal": 0, "action": 1},
     "MOVE": {"traversal": 0, "action": 0},
 }
