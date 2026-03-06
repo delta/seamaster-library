@@ -92,7 +92,6 @@ class Forager(BotController):
                     return deposit(None)
 
                 dist, trg = ctx.min_adjacent_distance_bank(bank, loc)
-                print(f"Distance to bank {bank.id} is {dist} and target is {trg}")
                 if trg is not None:
                     d = ctx.move_target(loc, trg)
                     if d:
