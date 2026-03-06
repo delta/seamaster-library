@@ -36,6 +36,7 @@ class Lurker(BotController):
     BotController
         Base controller class providing context and movement utilities.
     """
+
     ABILITIES = [Ability.LOCKPICK]
 
     def __init__(self, ctx):

@@ -86,15 +86,18 @@ class Forager(BotController):
             bank = next((b for b in banks if b.id == self.target_bank_id), None)
 
             if bank:
-                # dist = manhattan_distance(loc, bank.location)
+                dist_to_bank = manhattan_distance(loc, bank.location)
+
+                if dist_to_bank <= 1:
+                    return deposit(None)
+
                 dist, trg = ctx.min_adjacent_distance_bank(bank, loc)
-                if dist > 1 and trg is not None:
+                print(f"Distance to bank {bank.id} is {dist} and target is {trg}")
+                if trg is not None:
                     d = ctx.move_target(loc, trg)
                     if d:
                         return move(d)
-                else:
-                    return deposit(None)
-                    # pass
+                return None
 
         if ctx.get_energy() <= self.energy_threshold:
             pad = ctx.get_nearest_energy_pad()
