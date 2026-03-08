@@ -1,118 +1,112 @@
 from seamaster.botbase import BotController
 from seamaster.translate import move, lockpick
-from seamaster.constants import Direction, Ability
+from seamaster.constants import Ability, BotStatus, lock_pick_ticks
 from seamaster.api import GameAPI
-from seamaster.utils import manhattan_distance
+from seamaster.models.point import Point
+from seamaster.utils import (
+    get_direction_in_one_radius,
+    get_shortest_distance_between_points,
+    manhattan_distance,
+)
 
 
 class Lurker(BotController):
     """
-    Lurker is an offensive disruption bot that targets enemy banks
-    which are currently undergoing a deposit operation.
+    Bot controller responsible for attempting to lockpick opponent banks.
 
-    Interaction model:
-    - Lockpicking can only be performed when the bot is at a Manhattan
-      distance of exactly 1 from the target bank.
-    - After issuing a lockpick action, the engine resolves the interaction
-      and moves the bot onto the bank tile in the next tick.
+    The Lurker targets opponent banks where a deposit is currently occurring
+    and tries to lockpick them if sufficient deposit time remains. The bot
+    moves to a position adjacent to the target bank and initiates a lockpick
+    when possible.
 
-    High-level behavior:
-    - Searches for the nearest depositing enemy bank.
-    - Moves toward the bank and repeatedly lockpicks it.
-    - If energy is low, temporarily retreats to recharge at an energy pad.
+    Attributes:
+    status : BotStatus
+        Current state of the bot (ACTIVE or LOCKPICKING).
+
+    target_pad_id : int | None
+        Placeholder for energy pad target (unused in this implementation).
+
+    target_bank_id : int | None
+        ID of the bank currently targeted for lockpicking.
+
+    ABILITIES : list[Ability]
+        Abilities required to spawn this bot (LOCKPICK).
+
+    Inherits:
+    BotController
+        Base controller class providing context and movement utilities.
     """
 
     ABILITIES = [Ability.LOCKPICK]
 
-    ENERGY_THRESHOLD = 10
-
     def __init__(self, ctx):
-        """
-        Initializes the Lurker bot.
-
-        State variables:
-        - target_bank:
-            Location of the bank currently being targeted for lockpicking
-        - lockpick_ticks:
-            Number of consecutive ticks spent lockpicking the same bank
-        - status:
-            * "active"   → normal hunting / lockpicking behavior
-            * "charging" → recharging energy at an energy pad
-        - target_pad_id:
-            ID of the energy pad currently being targeted
-        """
         super().__init__(ctx)
-        self.target_bank = None
-        self.lockpick_ticks = 0
-        self.status = "active"
+        self.status = BotStatus.ACTIVE
         self.target_pad_id = None
+        self.target_bank_id = None
 
     def act(self):
-        """
-        Main decision loop executed every tick.
-
-        Priority order:
-        1. Resolve charging behavior if currently recharging
-        2. Initiate charging if energy falls below threshold
-        3. Acquire a depositing bank as a target if none is set
-        4. Lockpick the target bank when within interaction range
-        5. Move toward the target bank otherwise
-        """
         ctx = self.ctx
-        bot_pos = ctx.get_location()
-
-        if self.status == "charging":
-            pads = ctx.api.energypads()
-            pad = next((p for p in pads if p.id == self.target_pad_id), None)
-
-            if pad is None or pad.ticksleft == 0:
-                self.status = "active"
-                self.target_pad_id = None
+        loc = ctx.get_location()
+        # first check if lockpicking
+        if self.status == BotStatus.LOCKPICKING:
+            bank = next(
+                (b for b in ctx.api.banks() if b.id == self.target_bank_id), None
+            )
+            if bank:
+                if bank.lockpick_ticks_left == 0:
+                    self.status = BotStatus.ACTIVE
+                    self.target_bank = None
+                    return None
+                # else dont move
                 return None
+        # if not lockpicking, either set a target or move towards the target bank to lockpick
+        if self.target_bank_id is None:
+            # set a target bank to lockpick
+            banks = ctx.get_opponent_banks()
+            if banks:
+                for bank in banks:
+                    # skip if no of deposit ticks left is less that 20
+                    if bank.deposit_ticks_left < lock_pick_ticks:
+                        continue
 
-            if manhattan_distance(bot_pos, pad.location) == 1:
-                return None
-
-            d = ctx.move_target(bot_pos, pad.location)
-            if d:
-                return move(d)
-            return None
-
-        if ctx.get_energy() < self.ENERGY_THRESHOLD:
-            pad = ctx.get_nearest_energy_pad()
-            self.status = "charging"
-            self.target_pad_id = pad.id
-            self.lockpick_ticks = 0
-            return None
-
-        if self.target_bank is None:
-            banks = ctx.get_depositing_banks_sorted()
-            if not banks:
-                for d in (
-                    Direction.NORTH,
-                    Direction.EAST,
-                    Direction.WEST,
-                    Direction.SOUTH,
-                ):
-                    if not ctx.check_blocked_direction(d):
-                        return move(d)
-                return None
-
-            self.target_bank = banks[0].location
-            self.lockpick_ticks = 0
-
-        if manhattan_distance(bot_pos, self.target_bank) == 1:
-            self.lockpick_ticks += 1
-            if self.lockpick_ticks >= 20:
-                self.target_bank = None
-                self.lockpick_ticks = 0
-                return None
-            return lockpick(self.target_bank)
-
-        d = ctx.move_target(bot_pos, self.target_bank)
-        if d:
-            return move(d)
-        return None
+                    # skip if one of my bots is already lockpicking it
+                    if (
+                        bank.lockpick_occuring
+                        and bank.lockpick_botid in ctx.get_my_bot_ids()
+                    ):
+                        continue
+                    self.target_bank_id = bank.id
+                    break
+        else:
+            # move towards target bank and lockpick if adjacent
+            bank = next(
+                (b for b in ctx.api.banks() if b.id == self.target_bank_id), None
+            )
+            if bank:
+                if manhattan_distance(loc, bank.location) == 1:
+                    if (
+                        bank.deposit_occuring
+                        and bank.deposit_ticks_left >= lock_pick_ticks
+                    ):
+                        self.status = BotStatus.LOCKPICKING
+                        return lockpick(get_direction_in_one_radius(loc, bank.location))
+                    else:
+                        self.target_bank_id = None
+                        return None
+                else:
+                    dirs = [[0, 1], [0, -1], [1, 0], [-1, 0]]
+                    s_dist = 1_000_000
+                    s_dir = None
+                    for d in dirs:
+                        adj = Point(bank.location.x + d[0], bank.location.y + d[1])
+                        dist = get_shortest_distance_between_points(loc, adj)
+                        if dist < s_dist:
+                            s_dist = dist
+                            s_dir = ctx.move_target(loc, adj)
+                    if s_dir:
+                        return move(s_dir)
+                    return None
 
     @classmethod
     def can_spawn(cls, api: GameAPI) -> bool:
@@ -123,3 +117,6 @@ class Lurker(BotController):
             bool: True if sufficient scraps are available to spawn the bot
         """
         return api.can_spawn(cls.ABILITIES)
+
+
+# to commit

@@ -47,8 +47,7 @@ class BotContext:
         """
         Get the unique identifier of this bot.
 
-        Returns:
-            int: Unique bot ID assigned by the engine.
+        Return Type: int
         """
         return self.bot.id
 
@@ -56,8 +55,7 @@ class BotContext:
         """
         Get the current energy level of the bot.
 
-        Returns:
-            int: Current energy units.
+        Returns Type: float
         """
         return self.bot.energy
 
@@ -65,8 +63,7 @@ class BotContext:
         """
         Get the current grid position of the bot.
 
-        Returns:
-            Point: Bot's current location.
+        Return Type: Point
         """
         return self.bot.location
 
@@ -74,8 +71,7 @@ class BotContext:
         """
         Get the abilities currently equipped by the bot.
 
-        Returns:
-            list[str]: List of ability identifiers.
+        Return Type: list[Ability]
         """
         return self.bot.abilities
 
@@ -83,19 +79,9 @@ class BotContext:
         """
         Get the amount of algae currently carried by the bot.
 
-        Returns:
-            int: Algae units held.
+        Return Type: int
         """
         return self.bot.algae_held
-
-    def get_type(self) -> list[Ability]:
-        """
-        Get the list of abilities currently equipped by the bot.
-
-        Returns:
-            list[str]: Ability identifiers.
-        """
-        return self.bot.abilities
 
     def spawn_cost(self, abilities: list[Ability]) -> int:
         """
@@ -103,13 +89,9 @@ class BotContext:
 
         Applies ability synergies where applicable.
 
-        Args:
-            abilities (list[str]): List of ability identifiers.
+        Args: List[Ability] - Abilities to be equipped on the new bot.
 
-        Returns:
-            dict: Dictionary with keys:
-                - 'scrap' (int)
-                - 'energy' (float)
+        Return Type: int - Total scrap cost for the given abilities.
         """
         total_scrap = 0
 
@@ -120,40 +102,58 @@ class BotContext:
 
         return total_scrap
 
+    def get_my_bot_ids(self) -> list[int]:
+        """
+        Get the IDs of all own bots excluding this bot.
+
+        Returns:
+            list[int]: IDs of all bots
+        """
+        return [b.id for b in self.api.get_my_bots() if b.id != self.bot.id]
+
     # ==================== SENSING ====================
 
-    def sense_enemies(self):
+    # Enemies -----------------
+    def sense_enemies_in_radius(
+        self, bot: Point, radius: int = 1
+    ) -> list[tuple[int, EnemyBot]]:
         """
-        Get all visible enemy bots.
+        Detects enemy bots within given radius of a point
 
-        Returns:
-            list[EnemyBot]: Visible enemy bots.
+        Return Type: list[tuple[int, EnemyBot]] - List of (distance, EnemyBot) tuples for enemies within radius, sorted by distance
         """
-        return self.api.visible_enemies()
+        result = []
 
-    def sense_enemies_in_radius(self, bot: Point, radius: int = 1) -> list[EnemyBot]:
+        for e in self.api.visible_enemies():
+            d = get_shortest_distance_between_points(bot, e.location)
+            if d is not None and d <= radius:
+                result.append((d, e))
+
+        sorted_result = sorted(result, key=lambda x: x[0])
+        return sorted_result
+
+    def sense_all_enemies(self, bot: Point) -> list[tuple[int, EnemyBot]]:
         """
-        Detect enemies within a Manhattan radius of a given point.
+        Detects ALL visible enemy bots and their distances from a point
 
-        Args:
-            bot (Point): Center position.
-            radius (int): Manhattan distance radius.
-
-        Returns:
-            list[EnemyBot]: Enemies within radius.
+        Return Type: list[tuple[int, EnemyBot]] - List of (distance, EnemyBot) tuples for all visible enemies, sorted by distance
         """
-        return [
-            b
-            for b in self.api.visible_enemies()
-            if get_shortest_distance_between_points(b.location, bot) <= radius
-        ]
+        result = []
 
+        for e in self.api.visible_enemies():
+            d = get_shortest_distance_between_points(bot, e.location)
+            if d is not None:
+                result.append((d, e))
+
+        sorted_result = sorted(result, key=lambda x: x[0])
+        return sorted_result
+
+    # Own Bots -----------------
     def sense_own_bots(self) -> list[Bot]:
         """
-        Get own bots excluding this bot.
+        Get own bots excluding current bot.
 
-        Returns:
-            list[Bot]: Nearby friendly bots.
+        Return Type: list[Bot]
         """
         return [b for b in self.api.get_my_bots() if b.id != self.bot.id]
 
@@ -163,10 +163,9 @@ class BotContext:
 
         Args:
             bot (Point): Center position.
-            radius (int): Manhattan distance radius.
+            radius (int): Distance radius.
 
-        Returns:
-            list[Bot]: Friendly bots within radius.
+        Return Type: list[Bot] - List of own bots within given radius.
         """
         return [
             b
@@ -175,16 +174,16 @@ class BotContext:
             and get_shortest_distance_between_points(b.location, bot) <= radius
         ]
 
+    # Algae -----------------
     def sense_unknown_algae(self, bot: Point) -> list[tuple[int, Algae]]:
         """
-        Detect algae within a Manhattan radius of a point.
+        Detect algae within a given radius of a point.
 
         Args:
             bot (Point): Center position.
             radius (int): Manhattan distance radius.
 
-        Returns:
-            list[Algae]: Algae within radius.
+        Return Type: list[tuple[int, Algae]] - List of (distance, Algae) tuples for algae within radius, sorted by distance.
         """
         result = []
 
@@ -198,7 +197,12 @@ class BotContext:
 
     def sense_non_poisionous_algae(self, bot: Point) -> list[tuple[int, Algae]]:
         """
-        Returns List of non_poisonous algae
+        Returns List of all non-poisonous algae sorted by distance from the bot.
+
+        Args:
+            bot (Point): Center position.
+
+        Return Type: list[tuple[int, Algae]] - List of (distance, Algae) tuples for non-poisonous algae, sorted by distance.
         """
         result = []
 
@@ -210,16 +214,16 @@ class BotContext:
         sorted_result = sorted(result, key=lambda x: x[0])
         return sorted_result
 
+    # Scraps -----------------
     def sense_scraps_in_radius(self, bot: Point, radius: int = 0) -> list[Scrap]:
         """
-        Detect scraps within a Manhattan radius of a point.
+        Detect scraps within a given radius of a point.
 
         Args:
             bot (Point): Center position.
-            radius (int): Manhattan distance radius.
+            radius (int): Distance radius.
 
-        Returns:
-            list[Scrap]: Scraps within radius.
+        Return Type: list[Scrap] - List of scraps within given radius.
         """
         return [
             s
@@ -227,12 +231,12 @@ class BotContext:
             if get_shortest_distance_between_points(s.location, bot) == radius
         ]
 
+    # Permanent Entities -----------------
     def sense_objects(self) -> dict[str, list]:
         """
-        Retrieve all static and resource objects visible to the player.
+        Returns a dictionary mapping object categories(scraps,banks and walls) to the objects
 
-        Returns:
-            dict: Mapping of object categories to entity lists.
+        Return Type: dict[str, list] - Mapping of object categories to entity lists.
         """
         return {
             "scraps": self.api.visible_scraps(),
@@ -244,21 +248,19 @@ class BotContext:
         """
         Get all visible walls.
 
-        Returns:
-            list[Wall]: Visible wall entities.
+        Return Type: list[Wall] - Visible wall entities.
         """
         return self.api.visible_walls()
 
     def sense_walls_in_radius(self, bot: Point, radius: int = 1) -> list[Point]:
         """
-        Detect walls within a Manhattan radius of a point.
+        Detect walls within a given radius of a point.
 
         Args:
             bot (Point): Center position.
-            radius (int): Manhattan distance radius.
+            radius (int): Distance radius.
 
-        Returns:
-            list[Wall]: Walls within radius.
+        Return Type: list[Wall] - List of walls within given radius.
         """
         return [
             w
@@ -266,20 +268,47 @@ class BotContext:
             if get_shortest_distance_between_points(w, bot) <= radius
         ]
 
-    # ============= REACTING TO GAME STATE =============
+    def get_shortest_distance_in_four_directions(
+        self, bot: Point, target: Point
+    ) -> int:
+        dirs = [(1, 0), (0, 1), (-1, 0), (0, -1)]
+        not_blocked = []
+        for dx, dy in dirs:
+            adj = Point(target.x + dx, target.y + dy)
+            if not self.check_blocked_point(adj):
+                dist = get_shortest_distance_between_points(bot, adj)
+                if dist is not None:
+                    not_blocked.append(dist)
+        return min(not_blocked) if not_blocked else 100_000_000
 
-    def get_depositing_banks_sorted(self):
+    def get_depositing_banks_sorted(self) -> list[Bank] | None:
         """
         Get depositing banks sorted by nearest distance from the bot.
 
-        Returns:
-            list[Bank]: Depositing banks sorted by distance.
+        Return Type: list[Bank] - List of depositing banks sorted by distance.
         """
         pos = self.bot.location
         return sorted(
             (b for b in self.api.banks() if b.deposit_occuring),
-            key=lambda b: get_shortest_distance_between_points(b.location, pos),
+            key=lambda b: self.get_shortest_distance_in_four_directions(
+                b.location, pos
+            ),
         )
+
+    def get_opponent_banks(self) -> list[Bank] | None:
+        """
+        Returns a list of opponents banks sorted in ascending order of distance
+
+        Return Type: list[Bank] - List of opponent banks sorted by distance.
+        """
+        bot = self.bot.location
+        ans = sorted(
+            (b for b in self.api.banks() if not b.is_bank_owner),
+            key=lambda b: self.get_shortest_distance_in_four_directions(
+                b.location, bot
+            ),
+        )
+        return ans
 
     # ==================== PATHING ====================
 
@@ -308,6 +337,7 @@ class BotContext:
         """
         Compute the next point for a SPEED move in `direction` with `step` size.
         Returns None if any step would go out of bounds.
+        Return Type: Point | None
         """
         if step not in (1, 2):
             raise ValueError("Step size must be 1 or 2.")
@@ -344,13 +374,12 @@ class BotContext:
         - Out of bounds
         - Wall
         - Enemy
-        - Own bot (optional, recommended for collision avoidance)
+        - Own bot
 
         Args:
             pos (Point): Position to check.
 
-        Returns:
-            bool: True if blocked.
+        Return Type: bool - True if the position is blocked, False otherwise.
         """
 
         if (
@@ -414,28 +443,11 @@ class BotContext:
 
     # ==================== NEAREST OBJECT HELPERS ====================
 
-    def get_nearest_bank(self) -> Bank:
-        """
-        Returns:
-            Bank: Nearest bank.
-        """
-        pos = self.bot.location
-        return min(
-            self.api.banks(),
-            key=lambda b: get_shortest_distance_between_points(b.location, pos),
-        )
-
-    def get_energy_pads(self) -> list[EnergyPad]:
-        """
-        :return: List of energypafs
-        :rtype: list[EnergyPad]
-        """
-        return self.api.energypads()
-
     def get_nearest_energy_pad(self) -> EnergyPad:
         """
-        Return:
-            EnergyPad: Nearest energy pad.
+        Returns the nearest energy pad to the bot's current location.
+
+        Return Type: EnergyPad
         """
         pos = self.bot.location
         return min(
@@ -447,6 +459,8 @@ class BotContext:
         """
         Returns a list of my banks sorted in ascending order of distance
         (distance is min distance to any adjacent cell of the bank)
+
+        Return Type: list[Bank] - List of own banks sorted by distance.
         """
 
         my_banks = [b for b in self.api.banks() if b.is_bank_owner]
@@ -477,7 +491,7 @@ class BotContext:
         For the 4 adjacent cells of a bank, return:
         (minimum distance from bot, corresponding adjacent point)
 
-        Returns (inf, None) if no reachable adjacent cell exists.
+        Return Type: tuple[float, Point | None] - (Minimum distance to an adjacent cell, the corresponding adjacent Point or None if unreachable)
         """
 
         min_dist = float("inf")
@@ -499,26 +513,9 @@ class BotContext:
 
         return min_dist, min_point
 
-    def get_opponent_banks(self, bot: Point) -> list[Bank] | None:
-        """
-        Returns a list of opponents banks sorted in ascending order of distance
-        """
-        opp_banks = [b for b in self.api.banks() if not b.is_bank_owner]
-        if not opp_banks:
-            return None
-        dist1 = get_shortest_distance_between_points(bot, opp_banks[0].location)
-        dist2 = get_shortest_distance_between_points(bot, opp_banks[1].location)
-
-        if dist1 > dist2:
-            opp_banks.reverse()
-            return opp_banks
-
-        return opp_banks
-
     def get_nearest_scrap(self) -> Scrap:
         """
-        Return:
-            Scrap: Nearest scrap.
+        Return Type: Scrap - Nearest Scrap.
         """
         pos = self.bot.location
         return min(
@@ -528,8 +525,7 @@ class BotContext:
 
     def get_nearest_algae(self) -> Algae:
         """
-        Return:
-            Algae: Nearest algae.
+        Return Type: Algae - Nearest Algae.
         """
         pos = self.bot.location
         return min(
@@ -539,8 +535,7 @@ class BotContext:
 
     def get_nearest_enemy(self) -> EnemyBot:
         """
-        Return:
-            Bot: Nearest enemy.
+        Return Type: EnemyBot - Nearest Enemy Bot.
         """
         pos = self.bot.location
         return min(
