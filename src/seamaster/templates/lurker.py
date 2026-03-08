@@ -118,4 +118,5 @@ class Lurker(BotController):
         """
         return api.can_spawn(cls.ABILITIES)
 
+
 # to commit
