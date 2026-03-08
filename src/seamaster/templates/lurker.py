@@ -117,3 +117,5 @@ class Lurker(BotController):
             bool: True if sufficient scraps are available to spawn the bot
         """
         return api.can_spawn(cls.ABILITIES)
+
+# to commit
